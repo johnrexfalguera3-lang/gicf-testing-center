@@ -16,7 +16,6 @@ function getNextCustomerReply(
   prompt: ChatSimulationPrompt,
   agentTurnCount: number
 ): string {
-  // Zero-API helper: swap this function later to call your AI Edge Function
   const index = agentTurnCount - 1;
   if (index >= 0 && index < prompt.scriptedReplies.length) {
     return prompt.scriptedReplies[index];
@@ -81,7 +80,7 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-4">
+    <div className="rounded-2xl border border-white/75 bg-white/70 backdrop-blur-xl p-5 shadow-[0_10px_35px_rgba(14,10,36,0.06)] space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-purple-700">
@@ -93,13 +92,13 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
         <button
           type="button"
           onClick={handleReset}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition"
+          className="rounded-xl border border-white/80 bg-white/75 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-white transition shadow-sm"
         >
           Reset Chat
         </button>
       </div>
 
-      <div className="max-h-72 overflow-y-auto space-y-2.5 rounded-lg border border-slate-200 bg-white p-3">
+      <div className="max-h-72 overflow-y-auto space-y-2.5 rounded-xl border border-white/80 bg-white/55 backdrop-blur-md p-3.5">
         {messages.map((msg) => {
           const isAgent = msg.sender === 'agent';
           return (
@@ -108,10 +107,10 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
               className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                   isAgent
-                    ? 'bg-[#7e4cf6] text-white'
-                    : 'bg-slate-100 text-slate-800'
+                    ? 'bg-[#7e4cf6]/95 text-white border border-white/25'
+                    : 'bg-white/85 backdrop-blur-sm text-slate-800 border border-slate-200/70'
                 }`}
               >
                 <div
@@ -134,21 +133,21 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Type your chat reply as the agent..."
-          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#7e4cf6] focus:outline-none"
+          className="flex-1 rounded-xl border border-white/80 bg-white/75 backdrop-blur-md px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#7e4cf6] focus:bg-white focus:outline-none transition"
         />
         <button
           type="submit"
-          className="rounded-lg bg-[#7e4cf6] px-4 py-2 text-sm font-medium text-white hover:bg-[#6b3be0] transition"
+          className="rounded-xl bg-[#7e4cf6]/95 px-4 py-2 text-sm font-medium text-white hover:bg-[#6b3be0] transition shadow-md shadow-[#7e4cf6]/20"
         >
           Send
         </button>
       </form>
 
-      <div className="rounded-lg bg-purple-50/70 border border-purple-100 p-3">
+      <div className="rounded-xl bg-purple-500/10 backdrop-blur-md border border-purple-200/70 p-3.5">
         <div className="text-xs font-semibold text-purple-900 mb-1">
           Self-Practice Reminders
         </div>
-        <ul className="list-disc pl-4 space-y-1 text-xs text-purple-950/80">
+        <ul className="list-disc pl-4 space-y-1 text-xs text-purple-950/85">
           {prompt.coachingTips.map((tip) => (
             <li key={tip}>{tip}</li>
           ))}
