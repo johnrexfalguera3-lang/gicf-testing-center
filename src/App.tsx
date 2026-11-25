@@ -294,4 +294,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('simulations')}
-                className="rounded-xl bg-[#7e4cf6] px-3.5 py-1 text-xs font-semibold text-white border border-white/30 transition-all duration-200 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate
+                className="rounded-xl bg-[#7e4cf6] px-3.5 py-1 text-xs font-semibold text-white border border-white/30 transition-all duration-200 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer"
+              >
+                Open Practice →
+              </button>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </div>
+  );
+}
