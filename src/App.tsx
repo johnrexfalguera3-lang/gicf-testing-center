@@ -50,6 +50,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [quickSearch, setQuickSearch] = useState('');
 
   const urlAccount = new URLSearchParams(window.location.search)
     .get('account')
@@ -125,7 +126,7 @@ export default function App() {
 
   if (!sessionChecked) {
     return (
-      <div className="min-h-screen bg-[#f5f4fb] flex items-center justify-center text-sm text-slate-500">
+      <div className="min-h-screen bg-gradient-to-br from-slate-200 via-indigo-100/70 to-slate-200 flex items-center justify-center text-sm text-slate-600">
         Checking session...
       </div>
     );
@@ -133,9 +134,9 @@ export default function App() {
 
   if (!isAuthenticated || !profile) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(126,76,246,0.16),_transparent_45%),radial-gradient(circle_at_bottom_right,_rgba(34,211,238,0.14),_transparent_45%),#f5f4fb]">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_15%_15%,_rgba(148,163,184,0.35),_transparent_45%),radial-gradient(circle_at_85%_20%,_rgba(126,76,246,0.14),_transparent_45%),linear-gradient(135deg,_#e6ebf2_0%,_#f3f5f9_50%,_#dfe6f0_100%)]">
         {authError && (
-          <div className="bg-rose-600/95 backdrop-blur-md text-white text-xs text-center py-2 px-4">
+          <div className="bg-rose-600/90 backdrop-blur-md text-white text-xs text-center py-2 px-4">
             {authError}
           </div>
         )}
@@ -170,76 +171,151 @@ export default function App() {
   );
 
   return (
-    <div className="relative min-h-screen flex bg-[radial-gradient(circle_at_15%_15%,_rgba(126,76,246,0.15),_transparent_40%),radial-gradient(circle_at_85%_20%,_rgba(56,189,248,0.14),_transparent_40%),radial-gradient(circle_at_50%_90%,_rgba(236,72,153,0.10),_transparent_45%),#f5f4fb] text-slate-900">
-      {/* Left Glass Sidebar */}
-      <aside className="w-60 bg-[#0e0a24]/92 backdrop-blur-xl border-r border-white/10 text-white flex flex-col justify-between p-4 shrink-0 shadow-2xl shadow-[#0e0a24]/15">
-        <div>
-          <div className="flex items-center gap-2.5 px-2.5 py-3 mb-5 rounded-xl bg-white/[0.04] border border-white/10">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 flex items-center justify-center text-xs font-extrabold shadow-md shadow-purple-500/30">
-              gicf
+    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_12%,_rgba(255,255,255,0.85),_transparent_40%),radial-gradient(circle_at_88%_18%,_rgba(126,76,246,0.12),_transparent_45%),radial-gradient(circle_at_50%_95%,_rgba(56,189,248,0.12),_transparent_45%),linear-gradient(135deg,_#dfe5ee_0%,_#eef2f7_52%,_#d7dfeb_100%)] text-slate-800 p-3 md:p-6">
+      <div className="mx-auto max-w-[1440px] min-h-[calc(100vh-3rem)] rounded-[28px] border border-white/80 bg-white/45 backdrop-blur-2xl shadow-[0_24px_70px_rgba(15,23,42,0.10)] flex flex-col md:flex-row overflow-hidden">
+        {/* Glass Left Sidebar */}
+        <aside className="w-full md:w-60 bg-white/55 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/75 flex flex-col justify-between p-4 shrink-0">
+          <div>
+            <div className="flex items-center gap-2.5 px-3 py-2.5 mb-5 rounded-2xl bg-white/60 border border-white/80 shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#7e4cf6] via-purple-500 to-cyan-400 flex items-center justify-center text-xs font-extrabold text-white shadow-sm">
+                gicf
+              </div>
+              <div>
+                <div className="font-bold text-sm text-slate-900 leading-tight">
+                  Testing Center
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {profile.assigned_account} • {formattedLob}
+                </div>
+              </div>
             </div>
-            <span className="font-bold text-sm tracking-wide">Testing Center</span>
+
+            <nav className="space-y-1">
+              {visibleTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                      isActive
+                        ? 'bg-white/90 text-slate-900 border border-white shadow-[0_6px_18px_rgba(15,23,42,0.06)]'
+                        : 'text-slate-600 hover:bg-white/55 hover:text-slate-900 border border-transparent'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    {tab.badge && (
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-slate-900/5 text-slate-700 border border-white/70">
+                        {tab.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          <nav className="space-y-1">
-            {visibleTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
+          <div className="mt-6 px-3 py-3 rounded-2xl bg-white/55 border border-white/80 space-y-2">
+            <div className="text-[11px] font-medium text-slate-700 truncate">
+              {profile.email}
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="font-medium text-[#7e4cf6] hover:text-[#6334d9] transition"
+              >
+                Sign Out
+              </button>
+              <span className="text-[11px] text-slate-400">© 2026</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Glass Workspace */}
+        <div className="flex-1 flex flex-col justify-between min-w-0">
+          <div className="p-5 md:p-7 space-y-6">
+            {/* Top Frosted Header Bar */}
+            <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/60 backdrop-blur-xl px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <div className="flex items-center gap-2.5">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/85 border border-white text-xs font-bold text-slate-700 shadow-2xs">
+                  {(dashboardData.agentName || 'A').slice(0, 1).toUpperCase()}
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-slate-900">
+                    Welcome back, {dashboardData.agentName}
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    {dashboardData.accountName} • {dashboardData.cohortStage}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="text"
+                  value={quickSearch}
+                  onChange={(e) => setQuickSearch(e.target.value)}
+                  placeholder="Quick filter note..."
+                  className="w-40 sm:w-52 rounded-full border border-white/85 bg-white/70 px-3.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#7e4cf6] focus:bg-white focus:outline-none transition"
+                />
                 <button
-                  key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
-                    isActive
-                      ? 'bg-[#7e4cf6]/90 text-white border border-white/20 shadow-lg shadow-[#7e4cf6]/25'
-                      : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
-                  }`}
+                  onClick={() =>
+                    setActiveTab(
+                      activeTab === 'dashboard' ? 'simulations' : 'dashboard'
+                    )
+                  }
+                  className="rounded-full border border-white/85 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-white transition shadow-2xs"
                 >
-                  <span>{tab.label}</span>
-                  {tab.badge && (
-                    <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-sm">
-                      {tab.badge}
-                    </span>
-                  )}
+                  {activeTab === 'dashboard' ? 'Simulations' : 'Dashboard'}
                 </button>
-              );
-            })}
-          </nav>
-        </div>
+              </div>
+            </header>
 
-        <div className="px-3 py-3 rounded-xl bg-white/[0.04] border border-white/10 space-y-2">
-          <div className="text-[11px] text-slate-300 truncate">
-            {profile.assigned_account} • {profile.email}
+            {activeTab === 'dashboard' && (
+              <AgentDashboardView
+                data={dashboardData}
+                onQuickAction={(action) => {
+                  if (action === 'open_simulation') setActiveTab('simulations');
+                }}
+              />
+            )}
+
+            {activeTab === 'simulations' && (
+              <SimulationsView
+                accountName={dashboardData.accountName}
+                lob={formattedLob}
+              />
+            )}
           </div>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="text-xs text-purple-300 hover:text-white transition"
-          >
-            Sign Out
-          </button>
-          <div className="text-[11px] text-slate-400">© 2026 GICF Training</div>
+
+          {/* Bottom Frosted Dock / Quick Bar */}
+          <footer className="px-5 md:px-7 pb-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/60 backdrop-blur-xl px-4 py-2.5 text-xs text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-white/80 border border-white px-2.5 py-1 font-medium text-slate-800">
+                  GICF Glass UI
+                </span>
+                <span className="rounded-full bg-purple-500/10 border border-purple-200/70 px-2.5 py-1 font-medium text-purple-900">
+                  Self-Paced Practice
+                </span>
+                <span className="rounded-full bg-white/70 border border-white px-2.5 py-1 text-slate-600">
+                  Zero-API Chat Ready
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('simulations')}
+                className="rounded-full bg-[#7e4cf6]/90 px-3.5 py-1 font-semibold text-white hover:bg-[#6b3be0] transition"
+              >
+                Open Practice →
+              </button>
+            </div>
+          </footer>
         </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
-        {activeTab === 'dashboard' && (
-          <AgentDashboardView
-            data={dashboardData}
-            onQuickAction={(action) => {
-              if (action === 'open_simulation') setActiveTab('simulations');
-            }}
-          />
-        )}
-
-        {activeTab === 'simulations' && (
-          <SimulationsView
-            accountName={dashboardData.accountName}
-            lob={formattedLob}
-          />
-        )}
-      </main>
+      </div>
     </div>
   );
 }
