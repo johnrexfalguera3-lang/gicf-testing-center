@@ -1,2 +1,17 @@
-/* src/index.css */
 @import "tailwindcss";
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.glass-canvas {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(126, 76, 246, 0.14), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(217, 119, 6, 0.12), transparent 45%),
+    linear-gradient(135deg, #d8dee9 0%, #e5e9f0 55%, #cfd8e3 100%);
+}
