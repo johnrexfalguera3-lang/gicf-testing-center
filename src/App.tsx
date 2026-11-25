@@ -1,3 +1,4 @@
+import { SimulationsView } from './components/SimulationsView';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { SIDEBAR_TABS } from './config/sidebarTabs';
@@ -215,8 +216,15 @@ export default function App() {
           <AgentDashboardView
             data={dashboardData}
             onQuickAction={(action) => {
-              if (action === 'open_simulation') setActiveTab('simulation');
+              if (action === 'open_simulations') setActiveTab('simulations');
             }}
+          />
+        )}
+
+        {activeTab === 'simulations' && (
+          <SimulationsView
+            accountName={dashboardData.accountName}
+            lob={dashboardData.lob}
           />
         )}
       </main>
