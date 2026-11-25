@@ -1,42 +1,44 @@
-import React, { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ChatPracticeBox } from './ChatPracticeBox';
+import { CHAT_SIMULATION_PROMPTS } from '../data/chatSimulationPrompts';
 
-type ChannelLob = 'Voice' | 'Chat' | 'Email';
+type ChannelMode = 'Voice' | 'Chat' | 'Email';
+type TopicFilter = 'All' | 'Order Status' | 'Billing / Refund' | 'Escalations';
 
-interface PracticeScenario {
+interface ScenarioItem {
   id: string;
-  channel: ChannelLob;
+  channel: ChannelMode;
+  topic: Exclude<TopicFilter, 'All'>;
   title: string;
-  category: string;
-  estimatedMinutes: number;
   summary: string;
-  customerSituation: string;
-  suggestedFlow: string[];
-  keyReminders: string[];
+  estimatedMinutes: number;
+  situation: string;
+  responseFlow: string[];
+  reminders: string[];
 }
 
 interface SimulationsViewProps {
   accountName: string;
-  lob?: string;
+  lob?: 'Voice' | 'Chat' | 'Email';
 }
 
-const PRACTICE_SCENARIOS: PracticeScenario[] = [
-  // Voice scenarios
+const SCENARIOS: ScenarioItem[] = [
   {
     id: 'voice-order-status',
     channel: 'Voice',
+    topic: 'Order Status',
     title: 'Order Status & Delivery Update',
-    category: 'Order Status',
-    estimatedMinutes: 5,
     summary: 'Reassure a caller checking on a delayed order and set clear next steps.',
-    customerSituation:
+    estimatedMinutes: 5,
+    situation:
       'A customer calls asking why their order is still showing in transit past the initial estimate and wants to know when it will arrive.',
-    suggestedFlow: [
+    responseFlow: [
       'Warm voice greeting + confirm caller name and order details.',
       'Acknowledge the delay calmly without sounding defensive.',
       'Check latest tracking status, explain what it means in plain language, and share clear next steps.',
       'Confirm if there is anything else you can help with before closing.',
     ],
-    keyReminders: [
+    reminders: [
       'Keep tone steady, empathetic, and clear.',
       'Avoid promising exact arrival times if carrier status only shows a window.',
     ],
@@ -44,233 +46,196 @@ const PRACTICE_SCENARIOS: PracticeScenario[] = [
   {
     id: 'voice-billing-refund',
     channel: 'Voice',
+    topic: 'Billing / Refund',
     title: 'Billing & Refund Clarification',
-    category: 'Billing / Refund',
-    estimatedMinutes: 7,
     summary: 'Walk a caller through a charge or refund timeline clearly and patiently.',
-    customerSituation:
-      'A caller is confused about an amount on their statement or refund processing window and wants a straightforward breakdown.',
-    suggestedFlow: [
-      'Verify account details politely and listen through their question without interrupting.',
-      'Break down the charge or refund timeline step by step.',
-      'Summarize what happens next and offer a clear reference point if applicable.',
-    ],
-    keyReminders: [
-      'Slow down when reading numbers, dates, or policy windows.',
-      'Check that the caller feels heard before moving to next steps.',
-    ],
-  },
-  {
-    id: 'voice-escalation',
-    channel: 'Voice',
-    title: 'Frustrated Caller De-Escalation',
-    category: 'Escalations',
-    estimatedMinutes: 8,
-    summary: 'Lower tension on a live call, own the moment, and guide toward resolution.',
-    customerSituation:
-      'A frustrated customer calls after a repeat issue and starts raising their voice about past hassle.',
-    suggestedFlow: [
-      'Let the caller vent briefly while staying calm and composed.',
-      'Validate their frustration and take ownership of helping from here.',
-      'Ask focused clarifying questions and outline a clear action plan.',
-    ],
-    keyReminders: [
-      'Never match frustration or rush the caller.',
-      'Follow account escalation/transfer steps accurately if needed.',
-    ],
-  },
-
-  // Chat scenarios
-  {
-    id: 'chat-order-check',
-    channel: 'Chat',
-    title: 'Live Chat Order & Tracking Check',
-    category: 'Order Status',
-    estimatedMinutes: 5,
-    summary: 'Give concise, scannable chat updates without leaving the customer waiting.',
-    customerSituation:
-      'A customer starts a live chat asking for an update on a recent order and whether they need to be home for delivery.',
-    suggestedFlow: [
-      'Greet the customer warmly and ask for their order/reference details.',
-      'Send short, clear updates while checking status so they know you are active.',
-      'Share delivery expectations cleanly and ask if they need anything else.',
-    ],
-    keyReminders: [
-      'Break long explanations into short, easy-to-read chat messages.',
-      'Double-check spelling and order numbers before hitting send.',
-    ],
-  },
-  {
-    id: 'chat-billing-adjustment',
-    channel: 'Chat',
-    title: 'Chat Billing & Voucher Question',
-    category: 'Billing / Refund',
-    estimatedMinutes: 6,
-    summary: 'Clarify discount/billing details clearly in a fast-paced chat thread.',
-    customerSituation:
-      'A customer on chat asks why a promo or adjustment did not apply as expected to their order total.',
-    suggestedFlow: [
-      'Acknowledge the question and confirm order details.',
-      'Explain how the total or adjustment was calculated in plain, friendly language.',
-      'Confirm next steps and check for follow-up questions.',
-    ],
-    keyReminders: [
-      'Keep tone friendly and matter-of-fact—avoid defensive wording.',
-      'Confirm details clearly before closing the chat.',
-    ],
-  },
-
-  // Email scenarios
-  {
-    id: 'email-refund-follow-up',
-    channel: 'Email',
-    title: 'Email Refund Status & Next Steps',
-    category: 'Billing / Refund',
     estimatedMinutes: 7,
-    summary: 'Write a structured, reassuring email response with clear timelines.',
-    customerSituation:
-      'A customer sends an email asking about a refund/return status and wants written confirmation of what happens next.',
-    suggestedFlow: [
-      'Open with a clear subject-aligned greeting and acknowledge their message.',
-      'State the current status, relevant dates/windows, and any action needed from them.',
-      'Close politely with clear contact/reply instructions if they have questions.',
+    situation:
+      'A caller asks about card payment options and how long a refund takes to post back to their account.',
+    responseFlow: [
+      'Acknowledge the billing question politely and verify account context.',
+      'Explain accepted payment or refund timelines clearly.',
+      'Summarize what happens next and offer additional help.',
     ],
-    keyReminders: [
-      'Use clear spacing or short bullet points for timelines and next steps.',
-      'Review tone, dates, and reference details before sending.',
+    reminders: [
+      'State processing windows plainly so expectations stay realistic.',
+      'Check back in before ending the call.',
     ],
   },
   {
-    id: 'email-repeat-issue',
-    channel: 'Email',
-    title: 'Email Follow-Up on Repeat Concern',
-    category: 'Escalations',
+    id: 'voice-escalations',
+    channel: 'Voice',
+    topic: 'Escalations',
+    title: 'Frustrated Caller De-Escalation',
+    summary: 'Lower tension on a live call, own the moment, and guide toward resolution.',
     estimatedMinutes: 8,
-    summary: 'Respond empathetically to a written follow-up with a clear resolution plan.',
-    customerSituation:
-      'A customer emails following up on an earlier issue that still feels unresolved and asks for a clear update.',
-    suggestedFlow: [
-      'Acknowledge the follow-up and validate their patience.',
-      'Summarize what was reviewed and outline exact next steps or resolution.',
-      'Set clear expectations on timing and invite them to reply if more help is needed.',
+    situation:
+      'A caller is frustrated about repeated delays or promo/bundle confusion and wants a clear resolution.',
+    responseFlow: [
+      'Let the caller share their concern without interrupting.',
+      'Validate frustration and state what you can check or do right now.',
+      'Confirm the next step and check if they feel supported.',
     ],
-    keyReminders: [
-      'Address every question asked in the customer’s email.',
-      'Keep commitments realistic and easy to follow.',
+    reminders: [
+      'Stay calm and concise even when the caller sounds upset.',
+      'Focus on actionable next steps.',
+    ],
+  },
+  {
+    id: 'chat-order-status',
+    channel: 'Chat',
+    topic: 'Order Status',
+    title: 'Delayed Order Check-In',
+    summary: 'Practice live chat replies for an order past its initial delivery window.',
+    estimatedMinutes: 6,
+    situation:
+      'A customer messages on chat asking why their order is still in transit past the initial estimate.',
+    responseFlow: [
+      'Greet the customer warmly and acknowledge the wait.',
+      'Explain current status clearly without overpromising.',
+      'Share clear next steps and ask if anything else is needed.',
+    ],
+    reminders: [
+      'Keep chat messages easy to scan—short paragraphs work best.',
+      'Confirm follow-up steps clearly.',
+    ],
+  },
+  {
+    id: 'chat-billing-refund',
+    channel: 'Chat',
+    topic: 'Billing / Refund',
+    title: 'Card Payment & Refund Timeline',
+    summary: 'Guide a chat customer through card payments and refund processing windows.',
+    estimatedMinutes: 6,
+    situation:
+      'A customer asks on chat if credit cards are accepted and how long refunds take.',
+    responseFlow: [
+      'Answer the payment question directly.',
+      'Clarify refund timing and what affects posting speed.',
+      'Ask if they need help reviewing anything else.',
+    ],
+    reminders: [
+      'Be direct and clear on timelines.',
+      'Keep tone helpful and low-pressure.',
+    ],
+  },
+  {
+    id: 'chat-escalations',
+    channel: 'Chat',
+    topic: 'Escalations',
+    title: 'Promo vs. Group Meal & BOGO Options',
+    summary: 'Help a chat customer compare promos, group meals, and BOGO choices.',
+    estimatedMinutes: 6,
+    situation:
+      'A customer skips a promo code in chat to ask about group meals and buy-one-take-one options.',
+    responseFlow: [
+      'Match their focus on group meals or BOGO options right away.',
+      'Explain selection rules or bundle details plainly.',
+      'Offer clear next steps for their order.',
+    ],
+    reminders: [
+      'Avoid pushing unrelated promos when they ask for group/BOGO options.',
+      'Keep options clear and structured.',
+    ],
+  },
+  {
+    id: 'email-order-status',
+    channel: 'Email',
+    topic: 'Order Status',
+    title: 'Written Order Status Follow-Up',
+    summary: 'Draft a clear, structured email update on an order delay.',
+    estimatedMinutes: 7,
+    situation:
+      'A customer emails asking for a clear status update and next steps on a delayed order.',
+    responseFlow: [
+      'Open with a polite acknowledgment and clear subject/context.',
+      'Summarize current status and next steps in plain language.',
+      'Close with a helpful sign-off inviting any follow-up questions.',
+    ],
+    reminders: [
+      'Keep written updates organized and easy to read.',
+      'Avoid jargon or unconfirmed promises.',
     ],
   },
 ];
 
-const CHANNELS: ChannelLob[] = ['Voice', 'Chat', 'Email'];
+const TOPICS: TopicFilter[] = ['All', 'Order Status', 'Billing / Refund', 'Escalations'];
 
-export const SimulationsView: React.FC<SimulationsViewProps> = ({
-  accountName,
-  lob,
-}) => {
-  const initialChannel: ChannelLob = useMemo(() => {
-    const normalized = lob?.trim().toLowerCase();
-    if (normalized === 'chat') return 'Chat';
-    if (normalized === 'email') return 'Email';
-    return 'Voice';
-  }, [lob]);
+export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
+  const initialMode: ChannelMode =
+    lob === 'Chat' || lob === 'Email' || lob === 'Voice' ? lob : 'Voice';
 
-  const [selectedChannel, setSelectedChannel] =
-    useState<ChannelLob>(initialChannel);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [selectedId, setSelectedId] = useState<string>(() => {
-    const first = PRACTICE_SCENARIOS.find((s) => s.channel === initialChannel);
-    return first ? first.id : PRACTICE_SCENARIOS[0].id;
+  const [mode, setMode] = useState<ChannelMode>(initialMode);
+  const [topic, setTopic] = useState<TopicFilter>('All');
+  const [selectedId, setSelectedId] = useState<string>('voice-order-status');
+  const [practicedIds, setPracticedIds] = useState<string[]>([]);
+  const [notesById, setNotesById] = useState<Record<string, string>>({});
+  const [selectedChatPromptId, setSelectedChatPromptId] = useState<string>(
+    CHAT_SIMULATION_PROMPTS[0].id
+  );
+
+  const filteredScenarios = SCENARIOS.filter((item) => {
+    const matchesChannel = item.channel === mode;
+    const matchesTopic = topic === 'All' || item.topic === topic;
+    return matchesChannel && matchesTopic;
   });
-  const [practicedIds, setPracticedIds] = useState<Record<string, boolean>>({});
-  const [notesByScenario, setNotesByScenario] = useState<Record<string, string>>(
-    {}
-  );
 
-  const channelScenarios = useMemo(
-    () => PRACTICE_SCENARIOS.filter((s) => s.channel === selectedChannel),
-    [selectedChannel]
-  );
-
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(channelScenarios.map((s) => s.category)));
-    return ['All', ...unique];
-  }, [channelScenarios]);
-
-  const visibleScenarios = useMemo(() => {
-    if (selectedCategory === 'All') return channelScenarios;
-    return channelScenarios.filter((s) => s.category === selectedCategory);
-  }, [channelScenarios, selectedCategory]);
+  useEffect(() => {
+    if (filteredScenarios.length > 0) {
+      const stillVisible = filteredScenarios.some((s) => s.id === selectedId);
+      if (!stillVisible) {
+        setSelectedId(filteredScenarios[0].id);
+      }
+    }
+  }, [mode, topic, filteredScenarios, selectedId]);
 
   const activeScenario =
-    visibleScenarios.find((s) => s.id === selectedId) ??
-    visibleScenarios[0] ??
-    channelScenarios[0] ??
-    PRACTICE_SCENARIOS[0];
+    filteredScenarios.find((s) => s.id === selectedId) ??
+    filteredScenarios[0] ??
+    SCENARIOS[0];
 
-  const practicedCount = Object.values(practicedIds).filter(Boolean).length;
+  const activeChatPrompt =
+    CHAT_SIMULATION_PROMPTS.find((p) => p.id === selectedChatPromptId) ??
+    CHAT_SIMULATION_PROMPTS[0];
 
-  const handleSelectChannel = (channel: ChannelLob) => {
-    setSelectedChannel(channel);
-    setSelectedCategory('All');
-    const firstInChannel = PRACTICE_SCENARIOS.find((s) => s.channel === channel);
-    if (firstInChannel) {
-      setSelectedId(firstInChannel.id);
-    }
-  };
-
-  const handleSelectCategory = (category: string) => {
-    setSelectedCategory(category);
-    const matching =
-      category === 'All'
-        ? channelScenarios
-        : channelScenarios.filter((s) => s.category === category);
-    if (matching[0]) {
-      setSelectedId(matching[0].id);
-    }
-  };
+  const isPracticed = practicedIds.includes(activeScenario.id);
 
   const togglePracticed = (id: string) => {
-    setPracticedIds((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setPracticedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Simulations</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500">
             {accountName} • Choose Voice, Chat, or Email practice • Self-paced proficiency (no grading)
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 bg-white border border-purple-100 rounded-xl px-4 py-2 text-xs font-medium text-slate-700 self-start">
-          <span className="w-2 h-2 rounded-full bg-[#7e4cf6]" />
-          <span>
-            Practiced this session: <strong>{practicedCount}</strong> /{' '}
-            {PRACTICE_SCENARIOS.length}
-          </span>
+        <div className="rounded-full bg-purple-100 px-4 py-1.5 text-xs font-semibold text-purple-800">
+          Practiced this session: {practicedIds.length} / {SCENARIOS.length}
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-100">
+      {/* Channel & Topic Filter Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500 mr-1">
-            Mode:
-          </span>
-          {CHANNELS.map((channel) => {
-            const isSelected = selectedChannel === channel;
+          <span className="text-xs font-semibold text-slate-500 mr-1">Mode:</span>
+          {(['Voice', 'Chat', 'Email'] as ChannelMode[]).map((channel) => {
+            const active = mode === channel;
             return (
               <button
                 key={channel}
                 type="button"
-                onClick={() => handleSelectChannel(channel)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  isSelected
+                onClick={() => setMode(channel)}
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
+                  active
                     ? 'bg-[#7e4cf6] text-white'
-                    : 'bg-[#f5f4fb] text-slate-700 hover:bg-purple-100/70'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 {channel}
@@ -280,84 +245,81 @@ export const SimulationsView: React.FC<SimulationsViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          {categories.map((cat) => {
-            const active = selectedCategory === cat;
+          {TOPICS.map((item) => {
+            const active = topic === item;
             return (
               <button
-                key={cat}
+                key={item}
                 type="button"
-                onClick={() => handleSelectCategory(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
+                onClick={() => setTopic(item)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                   active
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
-                {cat}
+                {item}
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Two-Column Practice Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Scenario List */}
         <div className="lg:col-span-4 space-y-3">
-          {visibleScenarios.map((scenario) => {
-            const isSelected = scenario.id === activeScenario.id;
-            const isPracticed = Boolean(practicedIds[scenario.id]);
-
-            return (
-              <button
-                key={scenario.id}
-                type="button"
-                onClick={() => setSelectedId(scenario.id)}
-                className={`w-full text-left rounded-2xl p-4 border transition ${
-                  isSelected
-                    ? 'bg-white border-[#7e4cf6] ring-2 ring-[#7e4cf6]/15'
-                    : 'bg-white border-slate-100 hover:border-purple-200'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 text-[#7e4cf6]">
-                    {scenario.channel} • {scenario.category}
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    ~{scenario.estimatedMinutes} min
-                  </span>
-                </div>
-
-                <div className="font-semibold text-sm text-slate-900">
-                  {scenario.title}
-                </div>
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                  {scenario.summary}
-                </p>
-
-                <div className="mt-3 flex items-center justify-between text-[11px]">
-                  <span
-                    className={
-                      isPracticed
-                        ? 'text-emerald-600 font-semibold'
-                        : 'text-slate-400'
-                    }
-                  >
-                    {isPracticed ? 'Practiced' : 'Ready to practice'}
-                  </span>
-                  <span className="text-[#7e4cf6] font-medium">Open →</span>
-                </div>
-              </button>
-            );
-          })}
+          {filteredScenarios.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
+              No scenarios match this filter combination. Try switching to All topics.
+            </div>
+          ) : (
+            filteredScenarios.map((item) => {
+              const selected = item.id === activeScenario.id;
+              const done = practicedIds.includes(item.id);
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedId(item.id)}
+                  className={`w-full text-left rounded-xl border p-4 transition ${
+                    selected
+                      ? 'border-[#7e4cf6] bg-white ring-2 ring-[#7e4cf6]/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs mb-1.5">
+                    <span className="rounded-md bg-purple-50 px-2 py-0.5 font-medium text-purple-700">
+                      {item.channel} • {item.topic}
+                    </span>
+                    <span className="text-slate-400">~{item.estimatedMinutes} min</span>
+                  </div>
+                  <div className="font-semibold text-sm text-slate-900">
+                    {item.title}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                    {item.summary}
+                  </p>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <span className={done ? 'text-emerald-600 font-medium' : 'text-slate-400'}>
+                      {done ? 'Practiced ✓' : 'Ready to practice'}
+                    </span>
+                    <span className="font-medium text-[#7e4cf6]">Open →</span>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
 
-        <div className="lg:col-span-8 bg-white rounded-2xl p-6 border border-slate-100 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
+        {/* Active Scenario & Interactive Practice Panel */}
+        <div className="lg:col-span-8 rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#7e4cf6]">
-                {activeScenario.channel} • {activeScenario.category} • ~
-                {activeScenario.estimatedMinutes} min practice
-              </span>
-              <h2 className="text-lg font-bold text-slate-900 mt-0.5">
+              <div className="text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
+                {activeScenario.channel} • {activeScenario.topic} • ~{activeScenario.estimatedMinutes} Min Practice
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 mt-1">
                 {activeScenario.title}
               </h2>
             </div>
@@ -365,43 +327,64 @@ export const SimulationsView: React.FC<SimulationsViewProps> = ({
             <button
               type="button"
               onClick={() => togglePracticed(activeScenario.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition self-start ${
-                practicedIds[activeScenario.id]
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-[#7e4cf6] hover:bg-[#6c3ae5] text-white'
+              className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
+                isPracticed
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-[#7e4cf6] text-white hover:bg-[#6b3be0]'
               }`}
             >
-              {practicedIds[activeScenario.id]
-                ? 'Marked as Practiced ✓'
-                : 'Mark as Practiced'}
+              {isPracticed ? 'Marked as Practiced ✓' : 'Mark as Practiced'}
             </button>
           </div>
 
-          <div className="rounded-xl bg-[#f5f4fb] p-4">
+          <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-4">
             <div className="text-xs font-semibold text-slate-700 mb-1">
-              {activeScenario.channel === 'Voice'
-                ? 'Caller Situation'
-                : activeScenario.channel === 'Chat'
-                ? 'Chat Thread Context'
-                : 'Incoming Email Context'}
+              Scenario Situation
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              {activeScenario.customerSituation}
-            </p>
+            <p className="text-sm text-slate-700">{activeScenario.situation}</p>
           </div>
 
+          {mode === 'Chat' && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-600">
+                  Chat Prompt:
+                </span>
+                {CHAT_SIMULATION_PROMPTS.map((item) => {
+                  const isSelected = item.id === activeChatPrompt.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedChatPromptId(item.id)}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                        isSelected
+                          ? 'bg-[#7e4cf6] text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {item.title}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <ChatPracticeBox
+                prompt={activeChatPrompt}
+                accountName={accountName}
+              />
+            </div>
+          )}
+
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
               Suggested Response Flow
-            </h3>
+            </div>
             <ol className="space-y-2">
-              {activeScenario.suggestedFlow.map((step, index) => (
-                <li
-                  key={step}
-                  className="flex items-start gap-3 text-sm text-slate-700"
-                >
-                  <span className="w-5 h-5 rounded-full bg-purple-100 text-[#7e4cf6] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                    {index + 1}
+              {activeScenario.responseFlow.map((step, idx) => (
+                <li key={step} className="flex items-start gap-2.5 text-sm text-slate-700">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-100 text-[11px] font-bold text-purple-800">
+                    {idx + 1}
                   </span>
                   <span>{step}</span>
                 </li>
@@ -410,41 +393,39 @@ export const SimulationsView: React.FC<SimulationsViewProps> = ({
           </div>
 
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
               Helpful {activeScenario.channel} Reminders
-            </h3>
-            <ul className="space-y-1.5">
-              {activeScenario.keyReminders.map((tip) => (
-                <li
-                  key={tip}
-                  className="text-xs text-slate-600 flex items-start gap-2"
-                >
-                  <span className="text-[#7e4cf6] font-bold">•</span>
-                  <span>{tip}</span>
-                </li>
+            </div>
+            <ul className="list-disc pl-5 space-y-1 text-sm text-slate-600">
+              {activeScenario.reminders.map((tip) => (
+                <li key={tip}>{tip}</li>
               ))}
             </ul>
           </div>
 
-          <div className="pt-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <div>
+            <label
+              htmlFor="practice-notes"
+              className="block text-xs font-semibold text-slate-700 mb-1.5"
+            >
               Personal Practice Notes (Optional)
             </label>
             <textarea
+              id="practice-notes"
               rows={3}
-              value={notesByScenario[activeScenario.id] ?? ''}
+              value={notesById[activeScenario.id] ?? ''}
               onChange={(e) =>
-                setNotesByScenario((prev) => ({
+                setNotesById((prev) => ({
                   ...prev,
                   [activeScenario.id]: e.target.value,
                 }))
               }
-              placeholder={`Draft a sample ${activeScenario.channel.toLowerCase()} response or note phrasing you want to remember...`}
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-[#7e4cf6]"
+              placeholder="Draft a sample response or note phrasing you want to remember..."
+              className="w-full rounded-lg border border-slate-300 p-3 text-sm text-slate-800 focus:border-[#7e4cf6] focus:outline-none"
             />
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
