@@ -24,6 +24,17 @@
     linear-gradient(135deg, #c5d0e2 0%, #dce3ef 50%, #b9c6dc 100%);
 }
 
+@keyframes tabFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @layer components {
   .glass-btn {
     background: rgba(255, 255, 255, 0.45);
@@ -50,5 +61,9 @@
     transform: scale(0.97);
     border-color: rgba(126, 76, 246, 0.85);
     box-shadow: 0 0 0 3px rgba(126, 76, 246, 0.22);
+  }
+
+  .tab-panel-animate {
+    animation: tabFadeIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
