@@ -31,7 +31,7 @@ const SCENARIOS: ScenarioItem[] = [
     summary: 'Reassure a caller checking on a delayed order and set clear next steps.',
     estimatedMinutes: 5,
     situation:
-      'A customer calls asking why their order is still showing in transit past the initial estimate and wants to know when it will arrive.',
+      'A SPAVI customer calls asking why their order is still showing in transit past the initial estimate and wants to know when it will arrive.',
     responseFlow: [
       'Warm voice greeting + confirm caller name and order details.',
       'Acknowledge the delay calmly without sounding defensive.',
@@ -51,7 +51,7 @@ const SCENARIOS: ScenarioItem[] = [
     summary: 'Walk a caller through a charge or refund timeline clearly and patiently.',
     estimatedMinutes: 7,
     situation:
-      'A caller asks about card payment options and how long a refund takes to post back to their account.',
+      'A SPAVI caller asks about card payment options and how long a refund takes to post back to their account.',
     responseFlow: [
       'Acknowledge the billing question politely and verify account context.',
       'Explain accepted payment or refund timelines clearly.',
@@ -70,7 +70,7 @@ const SCENARIOS: ScenarioItem[] = [
     summary: 'Lower tension on a live call, own the moment, and guide toward resolution.',
     estimatedMinutes: 8,
     situation:
-      'A caller is frustrated about repeated delays or promo/bundle confusion and wants a clear resolution.',
+      'A SPAVI caller is frustrated about repeated delays or promo/bundle confusion and wants a clear resolution.',
     responseFlow: [
       'Let the caller share their concern without interrupting.',
       'Validate frustration and state what you can check or do right now.',
@@ -86,10 +86,10 @@ const SCENARIOS: ScenarioItem[] = [
     channel: 'Chat',
     topic: 'Order Status',
     title: 'Delayed Order Check-In',
-    summary: 'Practice live chat replies for an order past its initial delivery window.',
+    summary: 'Practice live chat replies for a SPAVI order past its initial delivery window.',
     estimatedMinutes: 6,
     situation:
-      'A customer messages on chat asking why their order is still in transit past the initial estimate.',
+      'A SPAVI customer messages on chat asking why their order is still in transit past the initial estimate.',
     responseFlow: [
       'Greet the customer warmly and acknowledge the wait.',
       'Explain current status clearly without overpromising.',
@@ -105,10 +105,10 @@ const SCENARIOS: ScenarioItem[] = [
     channel: 'Chat',
     topic: 'Billing / Refund',
     title: 'Card Payment & Refund Timeline',
-    summary: 'Guide a chat customer through card payments and refund processing windows.',
+    summary: 'Guide a SPAVI chat customer through card payments and refund processing windows.',
     estimatedMinutes: 6,
     situation:
-      'A customer asks on chat if credit cards are accepted and how long refunds take.',
+      'A SPAVI customer asks on chat if credit cards are accepted and how long refunds take.',
     responseFlow: [
       'Answer the payment question directly.',
       'Clarify refund timing and what affects posting speed.',
@@ -124,10 +124,10 @@ const SCENARIOS: ScenarioItem[] = [
     channel: 'Chat',
     topic: 'Escalations',
     title: 'Promo vs. Group Meal & BOGO Options',
-    summary: 'Help a chat customer compare promos, group meals, and BOGO choices.',
+    summary: 'Help a SPAVI chat customer compare promos, group meals, and BOGO choices.',
     estimatedMinutes: 6,
     situation:
-      'A customer skips a promo code in chat to ask about group meals and buy-one-take-one options.',
+      'A SPAVI customer skips a promo code in chat to ask about group meals and buy-one-take-one options.',
     responseFlow: [
       'Match their focus on group meals or BOGO options right away.',
       'Explain selection rules or bundle details plainly.',
@@ -143,10 +143,10 @@ const SCENARIOS: ScenarioItem[] = [
     channel: 'Email',
     topic: 'Order Status',
     title: 'Written Order Status Follow-Up',
-    summary: 'Draft a clear, structured email update on an order delay.',
+    summary: 'Draft a clear, structured email update on a SPAVI order delay.',
     estimatedMinutes: 7,
     situation:
-      'A customer emails asking for a clear status update and next steps on a delayed order.',
+      'A SPAVI customer emails asking for a clear status update and next steps on a delayed order.',
     responseFlow: [
       'Open with a polite acknowledgment and clear subject/context.',
       'Summarize current status and next steps in plain language.',
@@ -207,24 +207,24 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-5">
+      <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Simulations</h1>
           <p className="text-sm text-slate-600">
-            {accountName} • Choose Voice, Chat, or Email practice • Self-paced proficiency (no grading)
+            {accountName || 'SPAVI'} • Voice, Chat, or Email practice • Self-paced proficiency (no grading)
           </p>
         </div>
 
-        <div className="rounded-full bg-white/75 backdrop-blur-md border border-white/80 px-4 py-1.5 text-xs font-semibold text-purple-900 shadow-sm">
+        <div className="glass-card px-4 py-1.5 text-xs font-semibold text-purple-950">
           Practiced this session: {practicedIds.length} / {SCENARIOS.length}
         </div>
       </div>
 
       {/* Frosted Channel & Topic Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/75 bg-white/70 backdrop-blur-xl p-4 shadow-[0_8px_30px_rgba(14,10,36,0.05)]">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-600 mr-1">Mode:</span>
+      <div className="glass-card flex flex-wrap items-center justify-between gap-4 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-slate-700 mr-1">Mode:</span>
           {(['Voice', 'Chat', 'Email'] as ChannelMode[]).map((channel) => {
             const active = mode === channel;
             return (
@@ -232,10 +232,10 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                 key={channel}
                 type="button"
                 onClick={() => setMode(channel)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                   active
-                    ? 'bg-[#7e4cf6]/95 text-white shadow-md shadow-[#7e4cf6]/20'
-                    : 'bg-white/75 text-slate-700 border border-white/80 hover:bg-white'
+                    ? 'bg-[#7e4cf6] text-white border border-white/40 ring-2 ring-[#7e4cf6]/30 shadow-sm'
+                    : 'glass-btn text-slate-800'
                 }`}
               >
                 {channel}
@@ -252,10 +252,10 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                 key={item}
                 type="button"
                 onClick={() => setTopic(item)}
-                className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+                className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                   active
-                    ? 'bg-[#0e0a24]/90 text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-white/75'
+                    ? 'bg-[#0e0a24] text-white border border-white/30 shadow-sm'
+                    : 'glass-btn text-slate-700'
                 }`}
               >
                 {item}
@@ -266,11 +266,11 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
       </div>
 
       {/* Two-Column Glass Practice Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Glass Scenario List */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Scenario List */}
         <div className="lg:col-span-4 space-y-3">
           {filteredScenarios.length === 0 ? (
-            <div className="rounded-2xl border border-white/75 bg-white/70 backdrop-blur-xl p-5 text-sm text-slate-600 shadow-[0_8px_30px_rgba(14,10,36,0.05)]">
+            <div className="glass-card p-5 text-sm text-slate-700">
               No scenarios match this filter combination. Try switching to All topics.
             </div>
           ) : (
@@ -282,29 +282,29 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                   key={item.id}
                   type="button"
                   onClick={() => setSelectedId(item.id)}
-                  className={`w-full text-left rounded-2xl border backdrop-blur-xl p-4 transition ${
+                  className={`w-full text-left rounded-[18px] border p-4 backdrop-blur-[26px] transition-all duration-150 active:scale-[0.98] cursor-pointer ${
                     selected
-                      ? 'border-[#7e4cf6]/70 bg-white/85 ring-2 ring-[#7e4cf6]/25 shadow-lg shadow-[#7e4cf6]/10'
-                      : 'border-white/75 bg-white/65 hover:bg-white/80 shadow-[0_8px_24px_rgba(14,10,36,0.04)]'
+                      ? 'bg-white/55 border-[#7e4cf6]/75 ring-2 ring-[#7e4cf6]/30 shadow-[0_14px_38px_rgba(126,76,246,0.16)]'
+                      : 'bg-white/25 border-white/85 hover:bg-white/45 hover:border-[#7e4cf6]/50 hover:-translate-y-0.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 text-xs mb-1.5">
-                    <span className="rounded-lg bg-purple-500/10 border border-purple-200/70 px-2 py-0.5 font-medium text-purple-800">
+                    <span className="rounded-lg bg-purple-500/15 border border-white/70 px-2 py-0.5 font-medium text-purple-950">
                       {item.channel} • {item.topic}
                     </span>
-                    <span className="text-slate-500">~{item.estimatedMinutes} min</span>
+                    <span className="text-slate-600">~{item.estimatedMinutes} min</span>
                   </div>
                   <div className="font-semibold text-sm text-slate-900">
                     {item.title}
                   </div>
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                  <p className="text-xs text-slate-700 mt-1 line-clamp-2">
                     {item.summary}
                   </p>
                   <div className="mt-3 flex items-center justify-between text-xs">
-                    <span className={done ? 'text-emerald-700 font-medium' : 'text-slate-500'}>
+                    <span className={done ? 'text-emerald-800 font-semibold' : 'text-slate-600'}>
                       {done ? 'Practiced ✓' : 'Ready to practice'}
                     </span>
-                    <span className="font-medium text-[#7e4cf6]">Open →</span>
+                    <span className="font-semibold text-[#6b3be0]">Open →</span>
                   </div>
                 </button>
               );
@@ -312,11 +312,11 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
           )}
         </div>
 
-        {/* Glass Active Scenario & Interactive Practice Panel */}
-        <div className="lg:col-span-8 rounded-2xl border border-white/75 bg-white/70 backdrop-blur-xl p-6 shadow-[0_12px_36px_rgba(14,10,36,0.06)] space-y-5">
+        {/* Active Scenario & Interactive Practice Panel */}
+        <div className="lg:col-span-8 glass-card p-6 space-y-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
+              <div className="text-xs font-semibold uppercase tracking-wide text-[#6b3be0]">
                 {activeScenario.channel} • {activeScenario.topic} • ~{activeScenario.estimatedMinutes} Min Practice
               </div>
               <h2 className="text-xl font-bold text-slate-900 mt-1">
@@ -327,18 +327,18 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
             <button
               type="button"
               onClick={() => togglePracticed(activeScenario.id)}
-              className={`rounded-xl px-4 py-2 text-xs font-semibold transition shadow-sm ${
+              className={`rounded-xl px-4 py-2 text-xs font-semibold border transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 cursor-pointer ${
                 isPracticed
-                  ? 'bg-emerald-600/95 text-white hover:bg-emerald-700'
-                  : 'bg-[#7e4cf6]/95 text-white hover:bg-[#6b3be0]'
+                  ? 'bg-emerald-600 text-white border-white/35 active:ring-emerald-400/40'
+                  : 'bg-[#7e4cf6] text-white border-white/35 active:ring-[#7e4cf6]/40'
               }`}
             >
               {isPracticed ? 'Marked as Practiced ✓' : 'Mark as Practiced'}
             </button>
           </div>
 
-          <div className="rounded-xl bg-white/65 backdrop-blur-md border border-white/80 p-4">
-            <div className="text-xs font-semibold text-slate-700 mb-1">
+          <div className="glass-card p-4">
+            <div className="text-xs font-semibold text-slate-800 mb-1">
               Scenario Situation
             </div>
             <p className="text-sm text-slate-700">{activeScenario.situation}</p>
@@ -347,7 +347,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
           {mode === 'Chat' && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-slate-600">
+                <span className="text-xs font-semibold text-slate-700">
                   Chat Prompt:
                 </span>
                 {CHAT_SIMULATION_PROMPTS.map((item) => {
@@ -357,10 +357,10 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                       key={item.id}
                       type="button"
                       onClick={() => setSelectedChatPromptId(item.id)}
-                      className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+                      className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                         isSelected
-                          ? 'bg-[#7e4cf6]/95 text-white shadow-sm'
-                          : 'bg-white/75 text-slate-700 border border-white/80 hover:bg-white'
+                          ? 'bg-[#7e4cf6] text-white border border-white/40 ring-2 ring-[#7e4cf6]/30 shadow-sm'
+                          : 'glass-btn text-slate-800'
                       }`}
                     >
                       {item.title}
@@ -371,19 +371,19 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
 
               <ChatPracticeBox
                 prompt={activeChatPrompt}
-                accountName={accountName}
+                accountName={accountName || 'SPAVI'}
               />
             </div>
           )}
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-700 mb-2">
               Suggested Response Flow
             </div>
             <ol className="space-y-2">
               {activeScenario.responseFlow.map((step, idx) => (
-                <li key={step} className="flex items-start gap-2.5 text-sm text-slate-700">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/15 border border-purple-200/80 text-[11px] font-bold text-purple-900">
+                <li key={step} className="flex items-start gap-2.5 text-sm text-slate-800">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/75 border border-white text-[11px] font-bold text-purple-950">
                     {idx + 1}
                   </span>
                   <span>{step}</span>
@@ -393,7 +393,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
           </div>
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-700 mb-2">
               Helpful {activeScenario.channel} Reminders
             </div>
             <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
@@ -406,7 +406,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
           <div>
             <label
               htmlFor="practice-notes"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-slate-800 mb-1.5"
             >
               Personal Practice Notes (Optional)
             </label>
@@ -421,7 +421,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                 }))
               }
               placeholder="Draft a sample response or note phrasing you want to remember..."
-              className="w-full rounded-xl border border-white/80 bg-white/70 backdrop-blur-md p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#7e4cf6] focus:bg-white focus:outline-none transition"
+              className="glass-card w-full p-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#7e4cf6] focus:bg-white/65 focus:outline-none transition"
             />
           </div>
         </div>
