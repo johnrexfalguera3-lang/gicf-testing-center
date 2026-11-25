@@ -157,7 +157,7 @@ export default function App() {
   const dashboardData: AgentDashboardData = {
     ...SAMPLE_SPAVI_AGENT_DATA,
     accountName: profile.assigned_account,
-    lob: formattedLob,
+    lob: 'Voice',
     agentName: profile.full_name || profile.email,
     cohortStage:
       profile.cohort_stage === 'deployed_prod'
@@ -228,7 +228,7 @@ export default function App() {
           <AgentDashboardView
             data={dashboardData}
             onQuickAction={(action) => {
-              if (action === 'open_simulations') setActiveTab('simulations');
+              if (action === 'open_simulation') setActiveTab('simulations');
             }}
           />
         )}
@@ -236,7 +236,7 @@ export default function App() {
         {activeTab === 'simulations' && (
           <SimulationsView
             accountName={dashboardData.accountName}
-            lob={dashboardData.lob}
+            lob={formattedLob}
           />
         )}
       </main>
