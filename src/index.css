@@ -23,3 +23,32 @@
     radial-gradient(circle at 52% 88%, rgba(236, 72, 153, 0.18), transparent 48%),
     linear-gradient(135deg, #c5d0e2 0%, #dce3ef 50%, #b9c6dc 100%);
 }
+
+@layer components {
+  .glass-btn {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition:
+      transform 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .glass-btn:hover {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(126, 76, 246, 0.55);
+    transform: translateY(-1px);
+    box-shadow:
+      0 8px 20px rgba(126, 76, 246, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .glass-btn:active {
+    transform: scale(0.97);
+    border-color: rgba(126, 76, 246, 0.85);
+    box-shadow: 0 0 0 3px rgba(126, 76, 246, 0.22);
+  }
+}
