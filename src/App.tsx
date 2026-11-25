@@ -91,7 +91,7 @@ export default function App() {
     ) {
       await supabase.auth.signOut();
       setAuthError(
-        `These credentials are assigned to ${profileData.assigned_account}, not${urlAccount}.`
+        `These credentials are assigned to ${profileData.assigned_account}, not ${urlAccount}.`
       );
       setIsAuthenticated(false);
       setProfile(null);
@@ -189,4 +189,57 @@ export default function App() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition ${
+                    isActive
+                      ? 'bg-[#7e4cf6] text-white'
+                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.badge && (
+                    <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-white/15">
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="px-2.5 pt-4 border-t border-white/10 space-y-2">
+          <div className="text-[11px] text-slate-300 truncate">
+            {profile.assigned_account} • {profile.email}
+          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="text-xs text-purple-300 hover:text-white transition"
+          >
+            Sign Out
+          </button>
+          <div className="text-[11px] text-slate-400">© 2026 GICF Training</div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+        {activeTab === 'dashboard' && (
+          <AgentDashboardView
+            data={dashboardData}
+            onQuickAction={(action) => {
+              if (action === 'open_simulations') setActiveTab('simulations');
+            }}
+          />
+        )}
+
+        {activeTab === 'simulations' && (
+          <SimulationsView
+            accountName={dashboardData.accountName}
+            lob={dashboardData.lob}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
