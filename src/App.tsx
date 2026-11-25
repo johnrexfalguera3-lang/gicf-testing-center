@@ -1,7 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from './lib/supabaseClient';
 import { SIDEBAR_TABS } from './config/sidebarTabs';
 import { AgentDashboardView } from './components/AgentDashboardView';
+import { SplashAuthGate } from './components/SplashAuthGate';
 import { AgentDashboardData, TabId } from './types/dashboard';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: 'agent' | 'trainer' | 'admin';
+  assigned_account: string;
+  assigned_lob: 'voice' | 'chat' | 'email';
+  cohort_stage: 'new_hire' | 'deployed_prod';
+}
 
 const SAMPLE_SPAVI_AGENT_DATA: AgentDashboardData = {
   accountName: 'SPAVI',
@@ -33,6 +45,116 @@ const SAMPLE_SPAVI_AGENT_DATA: AgentDashboardData = {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const urlAccount = new URLSearchParams(window.location.search)
+    .get('account')
+    ?.toUpperCase();
+
+  const loadSessionAndProfile = async () => {
+    setAuthError(null);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+
+    if (!user) {
+      setIsAuthenticated(false);
+      setProfile(null);
+      setSessionChecked(true);
+      return;
+    }
+
+    const { data: profileData, error } = await supabase
+      .from('profiles')
+      .select(
+        'id, email, full_name, role, assigned_account, assigned_lob, cohort_stage'
+      )
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profileData) {
+      setAuthError(
+        'No profile record found for this account. Contact your trainer/admin.'
+      );
+      setIsAuthenticated(false);
+      setSessionChecked(true);
+      return;
+    }
+
+    if (
+      urlAccount &&
+      profileData.role === 'agent' &&
+      profileData.assigned_account.toUpperCase() !== urlAccount
+    ) {
+      await supabase.auth.signOut();
+      setAuthError(
+        `These credentials are assigned to ${profileData.assigned_account}, not ${urlAccount}.`
+      );
+      setIsAuthenticated(false);
+      setProfile(null);
+      setSessionChecked(true);
+      return;
+    }
+
+    setProfile(profileData as UserProfile);
+    setIsAuthenticated(true);
+    setSessionChecked(true);
+  };
+
+  useEffect(() => {
+    loadSessionAndProfile();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      loadSessionAndProfile();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setProfile(null);
+    setIsAuthenticated(false);
+  };
+
+  if (!sessionChecked) {
+    return (
+      <div className="min-h-screen bg-[#f5f4fb] flex items-center justify-center text-sm text-slate-500">
+        Checking session...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !profile) {
+    return (
+      <div>
+        {authError && (
+          <div className="bg-rose-600 text-white text-xs text-center py-2 px-4">
+            {authError}
+          </div>
+        )}
+        <SplashAuthGate
+          accountHint={urlAccount ?? 'SPAVI'}
+          onAuthenticated={loadSessionAndProfile}
+        />
+      </div>
+    );
+  }
+
+  const dashboardData: AgentDashboardData = {
+    ...SAMPLE_SPAVI_AGENT_DATA,
+    accountName: profile.assigned_account,
+    lob: 'Voice',
+    agentName: profile.full_name || profile.email,
+    cohortStage:
+      profile.cohort_stage === 'deployed_prod'
+        ? 'Deployed to Production'
+        : 'New Hire',
+  };
 
   return (
     <div className="min-h-screen flex bg-[#f5f4fb] text-slate-900">
@@ -72,7 +194,17 @@ export default function App() {
           </nav>
         </div>
 
-        <div className="px-2.5 pt-4 border-t border-white/10">
+        <div className="px-2.5 pt-4 border-t border-white/10 space-y-2">
+          <div className="text-[11px] text-slate-300 truncate">
+            {profile.assigned_account} • {profile.email}
+          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="text-xs text-purple-300 hover:text-white transition"
+          >
+            Sign Out
+          </button>
           <div className="text-[11px] text-slate-400">© 2026 GICF Training</div>
         </div>
       </aside>
@@ -81,7 +213,7 @@ export default function App() {
       <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
         {activeTab === 'dashboard' && (
           <AgentDashboardView
-            data={SAMPLE_SPAVI_AGENT_DATA}
+            data={dashboardData}
             onQuickAction={(action) => {
               if (action === 'open_simulation') setActiveTab('simulation');
             }}
