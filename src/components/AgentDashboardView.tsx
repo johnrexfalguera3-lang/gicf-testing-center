@@ -28,7 +28,7 @@ export function AgentDashboardView({
             <span>•</span>
             <span>{data.lob}</span>
             <span>•</span>
-            <span className="rounded-full bg-white/75 border border-white/80 px-2.5 py-0.5 text-slate-800">
+            <span className="rounded-full bg-white/75 border border-white/85 px-2.5 py-0.5 text-slate-800">
               {data.cohortStage}
             </span>
           </div>
@@ -43,13 +43,13 @@ export function AgentDashboardView({
         <button
           type="button"
           onClick={() => onQuickAction('open_simulation')}
-          className="rounded-2xl bg-[#7e4cf6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6b3be0] transition shadow-sm"
+          className="rounded-xl bg-[#7e4cf6] px-4 py-2.5 text-xs font-semibold text-white border border-white/30 shadow-md shadow-[#7e4cf6]/25 transition-all duration-150 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7e4cf6]/35 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer"
         >
           Launch Simulation →
         </button>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-card p-5">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -118,7 +118,7 @@ export function AgentDashboardView({
         </div>
       </div>
 
-      {/* Bottom Cards */}
+      {/* Charts & Scenario Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="glass-card lg:col-span-7 p-5 space-y-4">
           <div className="flex items-center justify-between">
@@ -133,7 +133,7 @@ export function AgentDashboardView({
             <button
               type="button"
               onClick={() => onQuickAction('view_full_trend')}
-              className="glass-card px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-white/75 transition"
+              className="glass-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
             >
               Details
             </button>
@@ -175,7 +175,7 @@ export function AgentDashboardView({
             <button
               type="button"
               onClick={() => onQuickAction('view_full_scenarios')}
-              className="glass-card px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-white/75 transition"
+              className="glass-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
             >
               Practice All
             </button>
