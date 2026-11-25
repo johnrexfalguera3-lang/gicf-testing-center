@@ -133,9 +133,9 @@ export default function App() {
 
   if (!isAuthenticated || !profile) {
     return (
-      <div>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(126,76,246,0.16),_transparent_45%),radial-gradient(circle_at_bottom_right,_rgba(34,211,238,0.14),_transparent_45%),#f5f4fb]">
         {authError && (
-          <div className="bg-rose-600 text-white text-xs text-center py-2 px-4">
+          <div className="bg-rose-600/95 backdrop-blur-md text-white text-xs text-center py-2 px-4">
             {authError}
           </div>
         )}
@@ -170,12 +170,12 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen flex bg-[#f5f4fb] text-slate-900">
-      {/* Left Sidebar */}
-      <aside className="w-60 bg-[#0e0a24] text-white flex flex-col justify-between p-4 shrink-0">
+    <div className="relative min-h-screen flex bg-[radial-gradient(circle_at_15%_15%,_rgba(126,76,246,0.15),_transparent_40%),radial-gradient(circle_at_85%_20%,_rgba(56,189,248,0.14),_transparent_40%),radial-gradient(circle_at_50%_90%,_rgba(236,72,153,0.10),_transparent_45%),#f5f4fb] text-slate-900">
+      {/* Left Glass Sidebar */}
+      <aside className="w-60 bg-[#0e0a24]/92 backdrop-blur-xl border-r border-white/10 text-white flex flex-col justify-between p-4 shrink-0 shadow-2xl shadow-[#0e0a24]/15">
         <div>
-          <div className="flex items-center gap-2.5 px-2.5 py-3 mb-5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 flex items-center justify-center text-xs font-extrabold">
+          <div className="flex items-center gap-2.5 px-2.5 py-3 mb-5 rounded-xl bg-white/[0.04] border border-white/10">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 flex items-center justify-center text-xs font-extrabold shadow-md shadow-purple-500/30">
               gicf
             </div>
             <span className="font-bold text-sm tracking-wide">Testing Center</span>
@@ -189,15 +189,15 @@ export default function App() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                     isActive
-                      ? 'bg-[#7e4cf6] text-white'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      ? 'bg-[#7e4cf6]/90 text-white border border-white/20 shadow-lg shadow-[#7e4cf6]/25'
+                      : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
                 >
                   <span>{tab.label}</span>
                   {tab.badge && (
-                    <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-white/15">
+                    <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-sm">
                       {tab.badge}
                     </span>
                   )}
@@ -207,7 +207,7 @@ export default function App() {
           </nav>
         </div>
 
-        <div className="px-2.5 pt-4 border-t border-white/10 space-y-2">
+        <div className="px-3 py-3 rounded-xl bg-white/[0.04] border border-white/10 space-y-2">
           <div className="text-[11px] text-slate-300 truncate">
             {profile.assigned_account} • {profile.email}
           </div>
