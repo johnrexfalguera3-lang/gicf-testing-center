@@ -80,25 +80,27 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/75 bg-white/70 backdrop-blur-xl p-5 shadow-[0_10px_35px_rgba(14,10,36,0.06)] space-y-4">
+    <div className="glass-card p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-purple-700">
+          <div className="text-xs font-semibold uppercase tracking-wide text-purple-800">
             {accountName} • Interactive Chat Practice (Ungraded)
           </div>
-          <div className="text-sm font-semibold text-slate-900">{prompt.title}</div>
-          <div className="text-xs text-slate-500">{prompt.customerPersona}</div>
+          <div className="text-sm font-semibold text-slate-900">
+            {prompt.title}
+          </div>
+          <div className="text-xs text-slate-600">{prompt.customerPersona}</div>
         </div>
         <button
           type="button"
           onClick={handleReset}
-          className="rounded-xl border border-white/80 bg-white/75 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-white transition shadow-sm"
+          className="glass-card px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-white/75 transition"
         >
           Reset Chat
         </button>
       </div>
 
-      <div className="max-h-72 overflow-y-auto space-y-2.5 rounded-xl border border-white/80 bg-white/55 backdrop-blur-md p-3.5">
+      <div className="glass-card max-h-72 overflow-y-auto space-y-2.5 p-3">
         {messages.map((msg) => {
           const isAgent = msg.sender === 'agent';
           return (
@@ -107,10 +109,10 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
               className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
+                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
                   isAgent
-                    ? 'bg-[#7e4cf6]/95 text-white border border-white/25'
-                    : 'bg-white/85 backdrop-blur-sm text-slate-800 border border-slate-200/70'
+                    ? 'bg-[#7e4cf6] text-white shadow-sm'
+                    : 'bg-white/80 text-slate-800 border border-white/80'
                 }`}
               >
                 <div
@@ -133,21 +135,21 @@ export function ChatPracticeBox({ prompt, accountName }: ChatPracticeBoxProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Type your chat reply as the agent..."
-          className="flex-1 rounded-xl border border-white/80 bg-white/75 backdrop-blur-md px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#7e4cf6] focus:bg-white focus:outline-none transition"
+          className="glass-card flex-1 px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#7e4cf6] focus:bg-white/85 focus:outline-none transition"
         />
         <button
           type="submit"
-          className="rounded-xl bg-[#7e4cf6]/95 px-4 py-2 text-sm font-medium text-white hover:bg-[#6b3be0] transition shadow-md shadow-[#7e4cf6]/20"
+          className="rounded-2xl bg-[#7e4cf6] px-4 py-2 text-sm font-medium text-white hover:bg-[#6b3be0] transition shadow-sm"
         >
           Send
         </button>
       </form>
 
-      <div className="rounded-xl bg-purple-500/10 backdrop-blur-md border border-purple-200/70 p-3.5">
-        <div className="text-xs font-semibold text-purple-900 mb-1">
+      <div className="glass-card p-3">
+        <div className="text-xs font-semibold text-purple-950 mb-1">
           Self-Practice Reminders
         </div>
-        <ul className="list-disc pl-4 space-y-1 text-xs text-purple-950/85">
+        <ul className="list-disc pl-4 space-y-1 text-xs text-slate-700">
           {prompt.coachingTips.map((tip) => (
             <li key={tip}>{tip}</li>
           ))}
