@@ -125,7 +125,7 @@ export default function App() {
 
   if (!sessionChecked) {
     return (
-      <div className="min-h-screen bg-[#b8c4d4] flex items-center justify-center text-sm text-slate-700">
+      <div className="glass-canvas min-h-screen flex items-center justify-center text-sm text-slate-700">
         Checking session...
       </div>
     );
@@ -133,9 +133,9 @@ export default function App() {
 
   if (!isAuthenticated || !profile) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_20%_15%,_rgba(255,255,255,0.55),_transparent_45%),radial-gradient(circle_at_85%_85%,_rgba(126,76,246,0.18),_transparent_50%),linear-gradient(145deg,_#b9c5d6_0%,_#cdd6e3_50%,_#aebbd0_100%)]">
+      <div className="glass-canvas min-h-screen">
         {authError && (
-          <div className="bg-rose-600/90 text-white text-xs text-center py-2 px-4">
+          <div className="bg-rose-600/90 backdrop-blur-md text-white text-xs text-center py-2 px-4">
             {authError}
           </div>
         )}
@@ -156,7 +156,7 @@ export default function App() {
 
   const dashboardData: AgentDashboardData = {
     ...SAMPLE_SPAVI_AGENT_DATA,
-    accountName: profile.assigned_account,
+    accountName: profile.assigned_account || 'SPAVI',
     lob: 'Voice',
     agentName: profile.full_name || profile.email,
     cohortStage:
@@ -170,21 +170,26 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,_rgba(255,255,255,0.6),_transparent_45%),radial-gradient(circle_at_85%_20%,_rgba(126,76,246,0.16),_transparent_48%),linear-gradient(145deg,_#b8c4d4_0%,_#cad4e2_52%,_#a8b6ca_100%)] text-slate-800 p-3 md:p-6">
-      <div className="mx-auto max-w-[1380px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/75 ring-1 ring-inset ring-white/50 bg-white/35 backdrop-blur-2xl shadow-[0_24px_60px_rgba(15,23,42,0.18)] flex flex-col md:flex-row overflow-hidden">
-        {/* Glass Left Rail */}
-        <aside className="w-full md:w-56 bg-white/45 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/65 flex flex-col justify-between p-3.5 shrink-0">
+    <div className="glass-canvas min-h-screen text-slate-800 p-3 md:p-6">
+      <div className="mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/80 bg-white/30 backdrop-blur-2xl shadow-[0_24px_60px_rgba(15,23,42,0.14)] flex flex-col md:flex-row overflow-hidden">
+        {/* Glass Left Sidebar */}
+        <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/75 flex flex-col justify-between p-4 shrink-0">
           <div>
-            <div className="flex items-center gap-2.5 px-2.5 py-2 mb-4">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#7e4cf6] to-sky-400 flex items-center justify-center text-[11px] font-extrabold text-white shadow-sm">
+            <div className="glass-card flex items-center gap-2.5 px-3 py-2.5 mb-5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#7e4cf6] to-sky-400 flex items-center justify-center text-xs font-extrabold text-white shadow-sm">
                 G
               </div>
-              <span className="font-bold text-sm text-slate-900">
-                Testing Center
-              </span>
+              <div>
+                <div className="font-bold text-sm text-slate-900 leading-tight">
+                  Testing Center
+                </div>
+                <div className="text-[11px] text-slate-600">
+                  {dashboardData.accountName} • {formattedLob}
+                </div>
+              </div>
             </div>
 
-            <nav className="space-y-1">
+            <nav className="space-y-1.5">
               {visibleTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -192,10 +197,10 @@ export default function App() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 active:scale-[0.98] cursor-pointer ${
                       isActive
-                        ? 'bg-white/80 text-slate-900 border border-white/90 shadow-xs'
-                        : 'text-slate-700 hover:bg-white/45'
+                        ? 'bg-white/85 text-slate-900 border border-[#7e4cf6]/70 ring-2 ring-[#7e4cf6]/25 shadow-[0_6px_18px_rgba(126,76,246,0.16)]'
+                        : 'text-slate-700 border border-transparent hover:bg-white/55 hover:border-white/85 hover:text-slate-900 hover:translate-x-0.5'
                     }`}
                   >
                     <span>{tab.label}</span>
@@ -210,24 +215,24 @@ export default function App() {
             </nav>
           </div>
 
-          <div className="mt-6 pt-3 border-t border-white/60 space-y-1.5 text-[11px] text-slate-600">
-            <div className="truncate font-medium text-slate-800">
-              {profile.assigned_account} • {profile.email}
+          <div className="glass-card mt-6 p-3 space-y-2 text-[11px] text-slate-700">
+            <div className="truncate font-semibold text-slate-900">
+              {dashboardData.accountName} • {profile.email}
             </div>
             <button
               type="button"
               onClick={handleSignOut}
-              className="text-xs font-semibold text-[#6b3be0] hover:underline"
+              className="glass-btn w-full rounded-lg py-1.5 text-center text-xs font-semibold text-[#6b3be0] cursor-pointer"
             >
               Sign Out
             </button>
           </div>
         </aside>
 
-        {/* Main Glass Stage */}
+        {/* Main Glass Workspace */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
-          <div className="p-4 md:p-6 space-y-4">
-            <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/75 ring-1 ring-inset ring-white/50 bg-white/50 backdrop-blur-xl px-4 py-2.5 shadow-xs">
+          <div className="p-4 md:p-6 space-y-5">
+            <header className="glass-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div className="text-xs md:text-sm font-semibold text-slate-900">
                 Welcome back, {dashboardData.agentName}
                 <span className="ml-2 text-xs font-normal text-slate-600">
@@ -242,9 +247,11 @@ export default function App() {
                     activeTab === 'dashboard' ? 'simulations' : 'dashboard'
                   )
                 }
-                className="rounded-full border border-white/85 bg-white/75 px-3.5 py-1 text-xs font-semibold text-slate-800 hover:bg-white transition"
+                className="glass-btn rounded-xl px-3.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
               >
-                {activeTab === 'dashboard' ? 'Go to Simulations' : 'Back to Dashboard'}
+                {activeTab === 'dashboard'
+                  ? 'Go to Simulations'
+                  : 'Back to Dashboard'}
               </button>
             </header>
 
@@ -265,21 +272,4 @@ export default function App() {
             )}
           </div>
 
-          <div className="px-4 md:px-6 pb-4">
-            <div className="flex flex-wrap items-center gap-2 rounded-full border border-white/75 bg-white/50 backdrop-blur-xl px-4 py-2 text-[11px] font-medium text-slate-700 shadow-xs">
-              <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-slate-900">
-                {dashboardData.accountName}
-              </span>
-              <span className="rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-purple-950">
-                {formattedLob} Mode
-              </span>
-              <span className="rounded-full bg-white/70 px-2.5 py-0.5">
-                Interactive Chat Ready
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+          <footer className="px-4 md:px-6
