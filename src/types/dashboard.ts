@@ -1,4 +1,4 @@
-export type TabId = 'dashboard' | 'simulation';
+export type TabId = 'dashboard' | 'simulations';
 
 export interface SidebarTab {
   id: TabId;
