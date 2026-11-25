@@ -175,12 +175,14 @@ export default function App() {
         {/* Glass Left Sidebar */}
         <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/75 flex flex-col justify-between p-4 shrink-0">
           <div>
-            <div className="glass-card flex items-center gap-2.5 px-3 py-2.5 mb-5">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 flex items-center justify-center text-xs font-extrabold text-white shadow-sm shrink-0">
-                gicf
-              </div>
-              <div>
-                <div className="font-bold text-sm text-slate-900 leading-tight">
+            <div className="glass-card flex items-center gap-3 px-3.5 py-2.5 mb-5">
+              <img
+                src="/gicf-logo.jpg"
+                alt="GICF Logo"
+                className="h-8 w-auto object-contain mix-blend-multiply shrink-0"
+              />
+              <div className="border-l border-slate-400/35 pl-2.5">
+                <div className="font-bold text-xs text-slate-900 leading-tight">
                   Testing Center
                 </div>
                 <div className="text-[11px] text-slate-600">
@@ -292,14 +294,4 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('simulations')}
-                className="rounded-xl bg-[#7e4cf6] px-3.5 py-1 text-xs font-semibold text-white border border-white/30 transition-all duration-200 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer"
-              >
-                Open Practice →
-              </button>
-            </div>
-          </footer>
-        </div>
-      </div>
-    </div>
-  );
-}
+                className="rounded-xl bg-[#7e4cf6] px-3.5 py-1 text-xs font-semibold text-white border border-white/30 transition-all duration-200 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate
