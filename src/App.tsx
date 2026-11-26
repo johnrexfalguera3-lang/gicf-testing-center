@@ -19,6 +19,7 @@ interface UserProfile {
 }
 
 const MANAGEMENT_ROLES: UserRole[] = ['trainer', 'supervisor', 'manager', 'admin'];
+const SROCI_ACADEMY_URL = 'https://sroci-academy.vercel.app';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -56,6 +57,7 @@ export default function App() {
         'No profile record found for this account. Contact your trainer/admin.'
       );
       setIsAuthenticated(false);
+      setProfile(null);
       setSessionChecked(true);
       return;
     }
@@ -135,6 +137,7 @@ export default function App() {
 
   const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
   const isSroci = accountKey === 'SROCI' && !isAdmin;
+  const canAccessSrociAcademy = accountKey === 'SROCI' || isAdmin;
   const basePreset = getAccountDashboardPreset(accountKey);
 
   const sidebarSubtitle = isAdmin
@@ -166,9 +169,13 @@ export default function App() {
     return roleOk && lobOk;
   });
 
-  const safeActiveTab: TabId = visibleTabs.some((t) => t.id === activeTab)
-    ? activeTab
-    : 'dashboard';
+  const isAllowedCustomTab =
+    activeTab === 'sroci_academy' && canAccessSrociAcademy;
+
+  const safeActiveTab: TabId =
+    visibleTabs.some((t) => t.id === activeTab) || isAllowedCustomTab
+      ? activeTab
+      : 'dashboard';
 
   const navMotionClass = 'sroci-alive-btn';
 
@@ -198,23 +205,42 @@ export default function App() {
               {visibleTabs.map((tab) => {
                 const isActive = safeActiveTab === tab.id;
                 return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ease-out active:scale-[0.98] cursor-pointer ${navMotionClass} ${
-                      isActive
-                        ? 'bg-white/85 text-slate-900 border border-[#7e4cf6]/70 ring-2 ring-[#7e4cf6]/25 shadow-[0_6px_18px_rgba(126,76,246,0.16)]'
-                        : 'text-slate-700 border border-transparent hover:bg-white/55 hover:border-white/85 hover:text-slate-900 hover:translate-x-0.5'
-                    }`}
-                  >
-                    <span>{tab.label}</span>
-                    {tab.badge && (
-                      <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-slate-900/10 text-slate-700">
-                        {tab.badge}
-                      </span>
+                  <div key={tab.id} className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ease-out active:scale-[0.98] cursor-pointer ${navMotionClass} ${
+                        isActive
+                          ? 'bg-white/85 text-slate-900 border border-[#7e4cf6]/70 ring-2 ring-[#7e4cf6]/25 shadow-[0_6px_18px_rgba(126,76,246,0.16)]'
+                          : 'text-slate-700 border border-transparent hover:bg-white/55 hover:border-white/85 hover:text-slate-900 hover:translate-x-0.5'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      {tab.badge && (
+                        <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-slate-900/10 text-slate-700">
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Place SROCI Academy directly below Simulations */}
+                    {tab.id === 'simulations' && canAccessSrociAcademy && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('sroci_academy')}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ease-out active:scale-[0.98] cursor-pointer ${navMotionClass} ${
+                          safeActiveTab === 'sroci_academy'
+                            ? 'bg-white/85 text-slate-900 border border-[#7e4cf6]/70 ring-2 ring-[#7e4cf6]/25 shadow-[0_6px_18px_rgba(126,76,246,0.16)]'
+                            : 'text-slate-700 border border-transparent hover:bg-white/55 hover:border-white/85 hover:text-slate-900 hover:translate-x-0.5'
+                        }`}
+                      >
+                        <span>SROCI Academy</span>
+                        <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-[#7e4cf6]/15 text-[#6b3be0]">
+                          SROCI
+                        </span>
+                      </button>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </nav>
@@ -282,6 +308,38 @@ export default function App() {
                   accountName={dashboardData.accountName}
                   lob={formattedLob}
                 />
+              </div>
+            )}
+
+            {safeActiveTab === 'sroci_academy' && canAccessSrociAcademy && (
+              <div key="tab-sroci-academy" className="tab-panel-animate space-y-4">
+                <div className="glass-card sroci-liquid-elevated p-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900">
+                      SROCI Academy
+                    </h2>
+                    <p className="text-xs text-slate-600">
+                      Separate SROCI learning portal — uses its own login without affecting your Testing Center session.
+                    </p>
+                  </div>
+                  <a
+                    href={SROCI_ACADEMY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`glass-btn rounded-xl px-3.5 py-1.5 text-xs font-semibold text-[#6b3be0] cursor-pointer ${navMotionClass}`}
+                  >
+                    Open in New Tab ↗
+                  </a>
+                </div>
+
+                <div className="glass-card sroci-light-edge overflow-hidden rounded-2xl h-[calc(100vh-17rem)] min-h-[540px]">
+                  <iframe
+                    src={SROCI_ACADEMY_URL}
+                    title="SROCI Academy"
+                    className="w-full h-full border-0 bg-white/60"
+                    allow="clipboard-read; clipboard-write"
+                  />
+                </div>
               </div>
             )}
 

@@ -1,4 +1,8 @@
-export type TabId = 'dashboard' | 'simulations' | 'admin_users';
+export type TabId =
+  | 'dashboard'
+  | 'simulations'
+  | 'sroci_academy'
+  | 'admin_users';
 
 export interface SidebarTab {
   id: TabId;
