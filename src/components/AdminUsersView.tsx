@@ -13,8 +13,13 @@ export interface ManagedProfile {
 }
 
 const ROLES: UserRole[] = ['agent', 'trainer', 'supervisor', 'manager', 'admin'];
+const STAFF_ROLES: UserRole[] = ['trainer', 'supervisor', 'manager', 'admin'];
 const LOBS: ('voice' | 'chat' | 'email')[] = ['voice', 'chat', 'email'];
 const COHORTS: ('new_hire' | 'deployed_prod')[] = ['new_hire', 'deployed_prod'];
+
+function isStaffRoleValue(role: UserRole): boolean {
+  return STAFF_ROLES.includes(role);
+}
 
 export const AdminUsersView: React.FC = () => {
   const [users, setUsers] = useState<ManagedProfile[]>([]);
@@ -52,7 +57,18 @@ export const AdminUsersView: React.FC = () => {
     value: string
   ) => {
     setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, [field]: value } : u))
+      prev.map((u) => {
+        if (u.id !== id) return u;
+        if (field === 'role') {
+          const nextRole = value as UserRole;
+          return {
+            ...u,
+            role: nextRole,
+            cohort_stage: isStaffRoleValue(nextRole) ? 'deployed_prod' : u.cohort_stage,
+          };
+        }
+        return { ...u, [field]: value };
+      })
     );
   };
 
@@ -61,6 +77,10 @@ export const AdminUsersView: React.FC = () => {
     setStatusMessage(null);
     setErrorMessage(null);
 
+    const nextCohortStage: 'new_hire' | 'deployed_prod' = isStaffRoleValue(user.role)
+      ? 'deployed_prod'
+      : user.cohort_stage;
+
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -68,13 +88,18 @@ export const AdminUsersView: React.FC = () => {
         role: user.role,
         assigned_account: user.assigned_account.trim().toUpperCase(),
         assigned_lob: user.assigned_lob,
-        cohort_stage: user.cohort_stage,
+        cohort_stage: nextCohortStage,
       })
       .eq('id', user.id);
 
     if (error) {
       setErrorMessage(`Could not update ${user.email}: ${error.message}`);
     } else {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, cohort_stage: nextCohortStage } : u
+        )
+      );
       setStatusMessage(`Saved changes for ${user.email}.`);
     }
     setSavingId(null);
@@ -162,82 +187,91 @@ export const AdminUsersView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="border-b border-slate-100">
-                  <td className="py-2 pr-3 font-medium text-slate-900">{u.email}</td>
-                  <td className="py-2 pr-3">
-                    <input
-                      type="text"
-                      value={u.full_name ?? ''}
-                      onChange={(e) => handleFieldChange(u.id, 'full_name', e.target.value)}
-                      className="w-36 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
-                    />
-                  </td>
-                  <td className="py-2 pr-3">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleFieldChange(u.id, 'role', e.target.value)}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-2 pr-3">
-                    <input
-                      type="text"
-                      value={u.assigned_account}
-                      onChange={(e) =>
-                        handleFieldChange(u.id, 'assigned_account', e.target.value)
-                      }
-                      className="w-28 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
-                    />
-                  </td>
-                  <td className="py-2 pr-3">
-                    <select
-                      value={u.assigned_lob}
-                      onChange={(e) =>
-                        handleFieldChange(u.id, 'assigned_lob', e.target.value)
-                      }
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
-                    >
-                      {LOBS.map((lob) => (
-                        <option key={lob} value={lob}>
-                          {lob}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-2 pr-3">
-                    <select
-                      value={u.cohort_stage}
-                      onChange={(e) =>
-                        handleFieldChange(u.id, 'cohort_stage', e.target.value)
-                      }
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
-                    >
-                      {COHORTS.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-2">
-                    <button
-                      type="button"
-                      disabled={savingId === u.id}
-                      onClick={() => handleSaveUser(u)}
-                      className="glass-btn px-3 py-1 text-xs font-semibold cursor-pointer"
-                    >
-                      {savingId === u.id ? 'Saving...' : 'Save'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredUsers.map((u) => {
+                const isStaff = isStaffRoleValue(u.role);
+                return (
+                  <tr key={u.id} className="border-b border-slate-100">
+                    <td className="py-2 pr-3 font-medium text-slate-900">{u.email}</td>
+                    <td className="py-2 pr-3">
+                      <input
+                        type="text"
+                        value={u.full_name ?? ''}
+                        onChange={(e) => handleFieldChange(u.id, 'full_name', e.target.value)}
+                        className="w-36 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleFieldChange(u.id, 'role', e.target.value)}
+                        className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                      >
+                        {ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-2 pr-3">
+                      <input
+                        type="text"
+                        value={u.assigned_account}
+                        onChange={(e) =>
+                          handleFieldChange(u.id, 'assigned_account', e.target.value)
+                        }
+                        className="w-28 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                      />
+                    </td>
+                    <td className="py-2 pr-3">
+                      <select
+                        value={u.assigned_lob}
+                        onChange={(e) =>
+                          handleFieldChange(u.id, 'assigned_lob', e.target.value)
+                        }
+                        className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                      >
+                        {LOBS.map((lob) => (
+                          <option key={lob} value={lob}>
+                            {lob}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-2 pr-3">
+                      {isStaff ? (
+                        <span className="text-xs font-medium text-slate-500">
+                          Staff (No New Hire tag)
+                        </span>
+                      ) : (
+                        <select
+                          value={u.cohort_stage}
+                          onChange={(e) =>
+                            handleFieldChange(u.id, 'cohort_stage', e.target.value)
+                          }
+                          className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                        >
+                          {COHORTS.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    <td className="py-2">
+                      <button
+                        type="button"
+                        disabled={savingId === u.id}
+                        onClick={() => handleSaveUser(u)}
+                        className="glass-btn px-3 py-1 text-xs font-semibold cursor-pointer"
+                      >
+                        {savingId === u.id ? 'Saving...' : 'Save'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
