@@ -22,7 +22,7 @@ interface UserProfile {
   role: UserRole;
   assigned_account: string;
   assigned_lob: 'voice' | 'chat' | 'email';
-  cohort_stage: 'new_hire' | 'deployed_prod';
+  cohort_stage: 'new_hire' | 'deployed_prod' | 'regular_employee';
 }
 
 const MANAGEMENT_ROLES: UserRole[] = ['trainer', 'supervisor', 'manager', 'admin'];

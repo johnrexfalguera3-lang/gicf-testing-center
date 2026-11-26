@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { UserRole } from '../config/sidebarTabs';
 
+export type CohortStage = 'new_hire' | 'deployed_prod' | 'regular_employee';
+
 export interface ManagedProfile {
   id: string;
   email: string;
@@ -9,13 +11,13 @@ export interface ManagedProfile {
   role: UserRole;
   assigned_account: string;
   assigned_lob: 'voice' | 'chat' | 'email';
-  cohort_stage: 'new_hire' | 'deployed_prod';
+  cohort_stage: CohortStage;
 }
 
 const ROLES: UserRole[] = ['agent', 'trainer', 'supervisor', 'manager', 'admin'];
 const STAFF_ROLES: UserRole[] = ['trainer', 'supervisor', 'manager', 'admin'];
 const LOBS: ('voice' | 'chat' | 'email')[] = ['voice', 'chat', 'email'];
-const COHORTS: ('new_hire' | 'deployed_prod')[] = ['new_hire', 'deployed_prod'];
+const COHORTS: CohortStage[] = ['new_hire', 'deployed_prod', 'regular_employee'];
 
 function isStaffRoleValue(role: UserRole): boolean {
   return STAFF_ROLES.includes(role);
@@ -64,7 +66,9 @@ export const AdminUsersView: React.FC = () => {
           return {
             ...u,
             role: nextRole,
-            cohort_stage: isStaffRoleValue(nextRole) ? 'deployed_prod' : u.cohort_stage,
+            cohort_stage: isStaffRoleValue(nextRole)
+              ? 'regular_employee'
+              : u.cohort_stage,
           };
         }
         return { ...u, [field]: value };
@@ -77,8 +81,8 @@ export const AdminUsersView: React.FC = () => {
     setStatusMessage(null);
     setErrorMessage(null);
 
-    const nextCohortStage: 'new_hire' | 'deployed_prod' = isStaffRoleValue(user.role)
-      ? 'deployed_prod'
+    const nextCohortStage: CohortStage = isStaffRoleValue(user.role)
+      ? 'regular_employee'
       : user.cohort_stage;
 
     const { error } = await supabase
@@ -241,7 +245,7 @@ export const AdminUsersView: React.FC = () => {
                     <td className="py-2 pr-3">
                       {isStaff ? (
                         <span className="text-xs font-medium text-slate-500">
-                          Staff (No New Hire tag)
+                          Regular Employee
                         </span>
                       ) : (
                         <select
