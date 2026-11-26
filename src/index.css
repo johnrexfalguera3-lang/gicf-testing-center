@@ -35,6 +35,17 @@
   }
 }
 
+@keyframes srociPanelFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.988);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @layer components {
   .glass-btn {
     background: rgba(255, 255, 255, 0.45);
@@ -65,5 +76,29 @@
 
   .tab-panel-animate {
     animation: tabFadeIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* SROCI-first experimental motion */
+  .sroci-alive-btn {
+    transition:
+      transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      background-color 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sroci-alive-btn:hover:not(:disabled) {
+    transform: translateY(-2.5px) scale(1.02);
+    box-shadow:
+      0 12px 26px rgba(126, 76, 246, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+
+  .sroci-alive-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.965);
+  }
+
+  .sroci-fade-panel {
+    animation: srociPanelFade 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }

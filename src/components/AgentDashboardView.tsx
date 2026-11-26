@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { AgentDashboardData } from '../types/dashboard';
 
 interface AgentDashboardViewProps {
@@ -15,16 +16,49 @@ export function AgentDashboardView({
 }: AgentDashboardViewProps) {
   const { kpis, proficiencyTrend, scenarioBreakdown } = data;
 
-  const isRecruitmentAccount = data.accountName?.trim().toUpperCase() === 'SROCI';
-  const displayTrackLabel = isRecruitmentAccount ? 'RECRUITMENT' : data.lob;
+  const isSroci = data.accountName?.trim().toUpperCase() === 'SROCI';
+  const displayTrackLabel = isSroci ? 'RECRUITMENT' : data.lob;
+
+  const [hoveredPreview, setHoveredPreview] = useState<
+    'trend' | 'scenarios' | null
+  >(null);
+  const hoverTimerRef = useRef<number | null>(null);
+
+  const clearHoverTimer = () => {
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  };
+
+  // Slight hover delay so content fades in intentionally instead of snapping on instant brush-by
+  const handleHoverStart = (panel: 'trend' | 'scenarios') => {
+    if (!isSroci) return;
+    clearHoverTimer();
+    hoverTimerRef.current = window.setTimeout(() => {
+      setHoveredPreview(panel);
+    }, 140);
+  };
+
+  const handleHoverEnd = () => {
+    clearHoverTimer();
+    setHoveredPreview(null);
+  };
+
+  useEffect(() => {
+    return () => clearHoverTimer();
+  }, []);
 
   const maxBreakdown = Math.max(
     ...scenarioBreakdown.map((item) => item.completed),
     1
   );
 
+  const btnMotion = isSroci ? 'sroci-alive-btn' : '';
+  const panelFade = isSroci ? 'sroci-fade-panel' : '';
+
   return (
-    <div className="space-y-5">
+    <div className={`space-y-5 ${panelFade}`}>
       {/* Header Card */}
       <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -58,7 +92,7 @@ export function AgentDashboardView({
         <button
           type="button"
           onClick={() => onQuickAction('open_simulation')}
-          className="rounded-xl bg-[#7e4cf6] px-4 py-2.5 text-xs font-semibold text-white border border-white/30 shadow-md shadow-[#7e4cf6]/25 transition-all duration-150 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7e4cf6]/35 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer"
+          className={`rounded-xl bg-[#7e4cf6] px-4 py-2.5 text-xs font-semibold text-white border border-white/30 shadow-md shadow-[#7e4cf6]/25 transition-all duration-150 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7e4cf6]/35 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer ${btnMotion}`}
         >
           Launch Simulation →
         </button>
@@ -135,7 +169,10 @@ export function AgentDashboardView({
 
       {/* Charts & Scenario Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <div className="glass-card lg:col-span-7 p-5 space-y-4">
+        <div
+          onMouseLeave={handleHoverEnd}
+          className="glass-card lg:col-span-7 p-5 space-y-4"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-900">
@@ -147,8 +184,9 @@ export function AgentDashboardView({
             </div>
             <button
               type="button"
+              onMouseEnter={() => handleHoverStart('trend')}
               onClick={() => onQuickAction('view_full_trend')}
-              className="glass-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
+              className={`glass-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer ${btnMotion}`}
             >
               Details
             </button>
@@ -175,9 +213,29 @@ export function AgentDashboardView({
               </div>
             ))}
           </div>
+
+          {isSroci && (
+            <div
+              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 transition-all duration-300 ease-out ${
+                hoveredPreview === 'trend'
+                  ? 'opacity-100 translate-y-0 max-h-24'
+                  : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
+              }`}
+            >
+              <span className="font-semibold text-[#6b3be0]">
+                SROCI Trend Snapshot:
+              </span>{' '}
+              Latest run reached{' '}
+              <strong>{proficiencyTrend[proficiencyTrend.length - 1]?.score ?? 90}%</strong>{' '}
+              across prescreening, walk-in invites, and client tracker updates.
+            </div>
+          )}
         </div>
 
-        <div className="glass-card lg:col-span-5 p-5 space-y-4">
+        <div
+          onMouseLeave={handleHoverEnd}
+          className="glass-card lg:col-span-5 p-5 space-y-4"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-900">
@@ -189,8 +247,9 @@ export function AgentDashboardView({
             </div>
             <button
               type="button"
+              onMouseEnter={() => handleHoverStart('scenarios')}
               onClick={() => onQuickAction('view_full_scenarios')}
-              className="glass-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
+              className={`glass-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer ${btnMotion}`}
             >
               Practice All
             </button>
@@ -221,6 +280,21 @@ export function AgentDashboardView({
               );
             })}
           </div>
+
+          {isSroci && (
+            <div
+              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 transition-all duration-300 ease-out ${
+                hoveredPreview === 'scenarios'
+                  ? 'opacity-100 translate-y-0 max-h-24'
+                  : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
+              }`}
+            >
+              <span className="font-semibold text-[#6b3be0]">
+                SROCI Pipeline Focus:
+              </span>{' '}
+              Covers ramp checks, job posts, prescreening, profile validation, walk-in invites, and client tracker follow-ups.
+            </div>
+          )}
         </div>
       </div>
     </div>
