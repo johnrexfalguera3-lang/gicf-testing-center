@@ -4,6 +4,7 @@ import { AgentDashboardData } from '../types/dashboard';
 interface AgentDashboardViewProps {
   data: AgentDashboardData;
   isAdmin?: boolean;
+  isStaffView?: boolean;
   onQuickAction: (
     action: 'open_simulation' | 'view_full_trend' | 'view_full_scenarios'
   ) => void;
@@ -12,12 +13,14 @@ interface AgentDashboardViewProps {
 export function AgentDashboardView({
   data,
   isAdmin = false,
+  isStaffView = false,
   onQuickAction,
 }: AgentDashboardViewProps) {
   const { kpis, proficiencyTrend, scenarioBreakdown } = data;
 
   const isRecruitmentTrack = data.accountName?.trim().toUpperCase() === 'SROCI';
   const displayTrackLabel = isRecruitmentTrack ? 'RECRUITMENT' : data.lob;
+  const hideCohortStage = isAdmin || isStaffView;
 
   const [hoveredPreview, setHoveredPreview] = useState<
     'trend' | 'scenarios' | null
@@ -75,18 +78,22 @@ export function AgentDashboardView({
               <span>{data.accountName}</span>
               <span>•</span>
               <span>{displayTrackLabel}</span>
-              <span>•</span>
-              <span className="rounded-full bg-white/80 border border-white px-2.5 py-0.5 text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-                {data.cohortStage}
-              </span>
+              {!hideCohortStage && (
+                <>
+                  <span>•</span>
+                  <span className="rounded-full bg-white/80 border border-white px-2.5 py-0.5 text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+                    {data.cohortStage}
+                  </span>
+                </>
+              )}
             </div>
           )}
           <h1 className="text-2xl font-bold text-slate-900 mt-1">
             Welcome back, {data.agentName}
           </h1>
           <p className="text-sm text-slate-600 mt-0.5">
-            {isAdmin
-              ? 'Testing Center administration and readiness overview.'
+            {isAdmin || isStaffView
+              ? `${data.accountName} training & readiness overview.`
               : `${data.accountName} practice overview and readiness summary.`}
           </p>
         </div>

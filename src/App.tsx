@@ -169,6 +169,7 @@ export default function App() {
 
   const isAdmin = profile.role === 'admin';
   const isManagementRole = MANAGEMENT_ROLES.includes(profile.role);
+  const isStaffRole = isManagementRole;
 
   const formattedLob: 'Voice' | 'Chat' | 'Email' =
     profile.assigned_lob === 'chat'
@@ -405,6 +406,8 @@ export default function App() {
                 <span className="ml-2 text-xs font-normal text-slate-600">
                   {isAdmin
                     ? '(Admin)'
+                    : isStaffRole
+                    ? `(${directoryEntry.accountName} • ${profile.role})`
                     : `(${directoryEntry.accountName} • ${dashboardData.cohortStage} • ${profile.role})`}
                 </span>
               </div>
@@ -429,6 +432,7 @@ export default function App() {
                 <AgentDashboardView
                   data={dashboardData}
                   isAdmin={isAdmin}
+                  isStaffView={isStaffRole}
                   onQuickAction={(action) => {
                     if (action === 'open_simulation') setActiveTab('simulations');
                   }}
