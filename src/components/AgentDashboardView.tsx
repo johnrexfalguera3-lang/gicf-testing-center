@@ -13,6 +13,9 @@ export function AgentDashboardView({
 }: AgentDashboardViewProps) {
   const { kpis, proficiencyTrend, scenarioBreakdown } = data;
 
+  const isRecruitmentAccount = data.accountName?.trim().toUpperCase() === 'SROCI';
+  const displayTrackLabel = isRecruitmentAccount ? 'RECRUITMENT' : data.lob;
+
   const maxBreakdown = Math.max(
     ...scenarioBreakdown.map((item) => item.completed),
     1
@@ -26,7 +29,7 @@ export function AgentDashboardView({
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
             <span>{data.accountName}</span>
             <span>•</span>
-            <span>{data.lob}</span>
+            <span>{displayTrackLabel}</span>
             <span>•</span>
             <span className="rounded-full bg-white/75 border border-white/85 px-2.5 py-0.5 text-slate-800">
               {data.cohortStage}
