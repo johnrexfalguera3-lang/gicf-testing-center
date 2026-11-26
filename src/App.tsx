@@ -1,8 +1,9 @@
-import { SimulationsView } from './components/SimulationsView';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
-import { SIDEBAR_TABS } from './config/sidebarTabs';
+import { SIDEBAR_TABS, UserRole } from './config/sidebarTabs';
 import { AgentDashboardView } from './components/AgentDashboardView';
+import { SimulationsView } from './components/SimulationsView';
+import { AdminUsersView } from './components/AdminUsersView';
 import { SplashAuthGate } from './components/SplashAuthGate';
 import { AgentDashboardData, TabId } from './types/dashboard';
 
@@ -10,11 +11,13 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'agent' | 'trainer' | 'admin';
+  role: UserRole;
   assigned_account: string;
   assigned_lob: 'voice' | 'chat' | 'email';
   cohort_stage: 'new_hire' | 'deployed_prod';
 }
+
+const MANAGEMENT_ROLES: UserRole[] = ['trainer', 'supervisor', 'manager', 'admin'];
 
 const SAMPLE_SPAVI_AGENT_DATA: AgentDashboardData = {
   accountName: 'SPAVI',
@@ -147,6 +150,8 @@ export default function App() {
     );
   }
 
+  const isManagementRole = MANAGEMENT_ROLES.includes(profile.role);
+
   const formattedLob =
     profile.assigned_lob === 'chat'
       ? 'Chat'
@@ -157,7 +162,7 @@ export default function App() {
   const dashboardData: AgentDashboardData = {
     ...SAMPLE_SPAVI_AGENT_DATA,
     accountName: profile.assigned_account || 'SPAVI',
-    lob: 'Voice',
+    lob: formattedLob,
     agentName: profile.full_name || profile.email,
     cohortStage:
       profile.cohort_stage === 'deployed_prod'
@@ -165,9 +170,15 @@ export default function App() {
         : 'New Hire',
   };
 
-  const visibleTabs = SIDEBAR_TABS.filter(
-    (tab) => !tab.lobs || tab.lobs.includes(profile.assigned_lob)
-  );
+  const visibleTabs = SIDEBAR_TABS.filter((tab) => {
+    const roleOk = !tab.roles || tab.roles.includes(profile.role);
+    const lobOk = !tab.lobs || tab.lobs.includes(profile.assigned_lob);
+    return roleOk && lobOk;
+  });
+
+  const safeActiveTab: TabId = visibleTabs.some((t) => t.id === activeTab)
+    ? activeTab
+    : 'dashboard';
 
   return (
     <div className="glass-canvas min-h-screen text-slate-800 p-3 md:p-6">
@@ -193,7 +204,7 @@ export default function App() {
 
             <nav className="space-y-1.5">
               {visibleTabs.map((tab) => {
-                const isActive = activeTab === tab.id;
+                const isActive = safeActiveTab === tab.id;
                 return (
                   <button
                     key={tab.id}
@@ -238,7 +249,8 @@ export default function App() {
               <div className="text-xs md:text-sm font-semibold text-slate-900">
                 Welcome back, {dashboardData.agentName}
                 <span className="ml-2 text-xs font-normal text-slate-600">
-                  ({dashboardData.accountName} • {dashboardData.cohortStage})
+                  ({dashboardData.accountName} • {dashboardData.cohortStage} •{' '}
+                  {profile.role})
                 </span>
               </div>
 
@@ -246,18 +258,18 @@ export default function App() {
                 type="button"
                 onClick={() =>
                   setActiveTab(
-                    activeTab === 'dashboard' ? 'simulations' : 'dashboard'
+                    safeActiveTab === 'dashboard' ? 'simulations' : 'dashboard'
                   )
                 }
                 className="glass-btn rounded-xl px-3.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
               >
-                {activeTab === 'dashboard'
+                {safeActiveTab === 'dashboard'
                   ? 'Go to Simulations'
                   : 'Back to Dashboard'}
               </button>
             </header>
 
-            {activeTab === 'dashboard' && (
+            {safeActiveTab === 'dashboard' && (
               <div key="tab-dashboard" className="tab-panel-animate">
                 <AgentDashboardView
                   data={dashboardData}
@@ -268,12 +280,18 @@ export default function App() {
               </div>
             )}
 
-            {activeTab === 'simulations' && (
+            {safeActiveTab === 'simulations' && (
               <div key="tab-simulations" className="tab-panel-animate">
                 <SimulationsView
                   accountName={dashboardData.accountName}
                   lob={formattedLob}
                 />
+              </div>
+            )}
+
+            {safeActiveTab === 'admin_users' && isManagementRole && (
+              <div key="tab-admin-users" className="tab-panel-animate">
+                <AdminUsersView />
               </div>
             )}
           </div>
