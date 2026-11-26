@@ -57,6 +57,22 @@ interface StageProgressState {
   statusNote: string;
 }
 
+interface TrackerLogEntry {
+  candidate: string;
+  stage: string;
+  status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired';
+  updatedBy: string;
+}
+
+interface PersistedSrociSimState {
+  stageProgress: Record<SrociStageId, StageProgressState>;
+  practicedIds: string[];
+  notesById: Record<string, string>;
+  trackerLog: TrackerLogEntry[];
+  dynamicXp: number;
+  xpStreak: number;
+}
+
 interface ScenarioItem {
   id: string;
   accountScope: 'SPAVI' | 'SROCI';
@@ -290,7 +306,6 @@ const SROCI_PIPELINE_STAGES: SrociStageDefinition[] = [
 ];
 
 const SCENARIOS: ScenarioItem[] = [
-  // SPAVI Customer Support Scenarios
   {
     id: 'voice-order-status',
     accountScope: 'SPAVI',
@@ -432,8 +447,6 @@ const SCENARIOS: ScenarioItem[] = [
       'Avoid jargon or unconfirmed promises.',
     ],
   },
-
-  // SROCI Recruitment Scenarios
   {
     id: 'sroci-voice-prescreen-walkin',
     accountScope: 'SROCI',
@@ -538,6 +551,12 @@ const SCENARIOS: ScenarioItem[] = [
   },
 ];
 
+const DEFAULT_TRACKER_LOG: TrackerLogEntry[] = [
+  { candidate: 'M. Reyes', stage: 'Prescreening', status: 'Walk-In Scheduled', updatedBy: 'SROCI' },
+  { candidate: 'A. Mendoza', stage: 'Profile Validation', status: 'Endorsed', updatedBy: 'SROCI' },
+  { candidate: 'H. Lim', stage: 'Status Follow-Up', status: 'Hired', updatedBy: 'Client Tracker' },
+];
+
 function createInitialStageProgress(): Record<SrociStageId, StageProgressState> {
   return SROCI_PIPELINE_STAGES.reduce((acc, stage) => {
     acc[stage.id] = {
@@ -551,6 +570,42 @@ function createInitialStageProgress(): Record<SrociStageId, StageProgressState> 
   }, {} as Record<SrociStageId, StageProgressState>);
 }
 
+function readPersistedSrociState(storageKey: string): PersistedSrociSimState | null {
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedSrociSimState>;
+    const mergedStages = createInitialStageProgress();
+    if (parsed.stageProgress) {
+      for (const stage of SROCI_PIPELINE_STAGES) {
+        const savedStage = parsed.stageProgress[stage.id];
+        if (savedStage) {
+          mergedStages[stage.id] = {
+            ...mergedStages[stage.id],
+            ...savedStage,
+          };
+        }
+      }
+    }
+    return {
+      stageProgress: mergedStages,
+      practicedIds: Array.isArray(parsed.practicedIds) ? parsed.practicedIds : [],
+      notesById:
+        parsed.notesById && typeof parsed.notesById === 'object'
+          ? parsed.notesById
+          : {},
+      trackerLog:
+        Array.isArray(parsed.trackerLog) && parsed.trackerLog.length > 0
+          ? parsed.trackerLog
+          : DEFAULT_TRACKER_LOG,
+      dynamicXp: typeof parsed.dynamicXp === 'number' ? parsed.dynamicXp : 0,
+      xpStreak: typeof parsed.xpStreak === 'number' ? parsed.xpStreak : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function SimulationsView({
   accountName,
   lob,
@@ -558,6 +613,7 @@ export function SimulationsView({
 }: SimulationsViewProps) {
   const normalizedAccount = (accountName || 'SPAVI').trim().toUpperCase();
   const isSroci = normalizedAccount === 'SROCI';
+  const simStorageKey = `sroci_simulations_state_${normalizedAccount}`;
 
   const initialMode: ChannelMode =
     lob === 'Chat' || lob === 'Email' || lob === 'Voice' ? lob : 'Voice';
@@ -578,40 +634,46 @@ export function SimulationsView({
   const [mode, setMode] = useState<ChannelMode>(initialMode);
   const [topic, setTopic] = useState<TopicFilter>('All');
   const [selectedId, setSelectedId] = useState<string>(accountScenarios[0]?.id ?? '');
-  const [practicedIds, setPracticedIds] = useState<string[]>([]);
-  const [notesById, setNotesById] = useState<Record<string, string>>({});
+  const [practicedIds, setPracticedIds] = useState<string[]>(() => {
+    if (!isSroci) return [];
+    return readPersistedSrociState(simStorageKey)?.practicedIds ?? [];
+  });
+  const [notesById, setNotesById] = useState<Record<string, string>>(() => {
+    if (!isSroci) return {};
+    return readPersistedSrociState(simStorageKey)?.notesById ?? {};
+  });
   const [selectedChatPromptId, setSelectedChatPromptId] = useState<string>(
     CHAT_SIMULATION_PROMPTS[0].id
   );
   const [showInteractiveSim, setShowInteractiveSim] = useState<boolean>(isSroci);
 
-  // Interactive SROCI Stage Cards, Sub-Views & Dynamic XP State
   const [srociSubView, setSrociSubView] = useState<SrociSubView>('cards');
   const [activeStageId, setActiveStageId] = useState<SrociStageId>('ramp_check');
   const [stageProgress, setStageProgress] = useState<Record<SrociStageId, StageProgressState>>(
-    () => createInitialStageProgress()
+    () => {
+      if (!isSroci) return createInitialStageProgress();
+      return readPersistedSrociState(simStorageKey)?.stageProgress ?? createInitialStageProgress();
+    }
   );
   const [showStageHint, setShowStageHint] = useState<boolean>(false);
-  const [dynamicXp, setDynamicXp] = useState<number>(0);
-  const [xpStreak, setXpStreak] = useState<number>(0);
+  const [dynamicXp, setDynamicXp] = useState<number>(() => {
+    if (!isSroci) return 0;
+    return readPersistedSrociState(simStorageKey)?.dynamicXp ?? 0;
+  });
+  const [xpStreak, setXpStreak] = useState<number>(() => {
+    if (!isSroci) return 0;
+    return readPersistedSrociState(simStorageKey)?.xpStreak ?? 0;
+  });
   const [lastXpAward, setLastXpAward] = useState<{
     total: number;
     breakdown: string[];
     feedback: string;
     isOptimal: boolean;
   } | null>(null);
-  const [trackerLog, setTrackerLog] = useState<
-    {
-      candidate: string;
-      stage: string;
-      status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired';
-      updatedBy: string;
-    }[]
-  >([
-    { candidate: 'M. Reyes', stage: 'Prescreening', status: 'Walk-In Scheduled', updatedBy: 'SROCI' },
-    { candidate: 'A. Mendoza', stage: 'Profile Validation', status: 'Endorsed', updatedBy: 'SROCI' },
-    { candidate: 'H. Lim', stage: 'Status Follow-Up', status: 'Hired', updatedBy: 'Client Tracker' },
-  ]);
+  const [trackerLog, setTrackerLog] = useState<TrackerLogEntry[]>(() => {
+    if (!isSroci) return DEFAULT_TRACKER_LOG;
+    return readPersistedSrociState(simStorageKey)?.trackerLog ?? DEFAULT_TRACKER_LOG;
+  });
 
   useEffect(() => {
     setMode(initialMode);
@@ -624,9 +686,44 @@ export function SimulationsView({
     if (firstForAccount) {
       setSelectedId(firstForAccount.id);
     }
-  }, [isSroci, initialMode]);
 
-  // Sync live SROCI simulations telemetry to parent App -> AgentDashboardView
+    if (isSroci) {
+      const saved = readPersistedSrociState(simStorageKey);
+      setStageProgress(saved?.stageProgress ?? createInitialStageProgress());
+      setPracticedIds(saved?.practicedIds ?? []);
+      setNotesById(saved?.notesById ?? {});
+      setTrackerLog(saved?.trackerLog ?? DEFAULT_TRACKER_LOG);
+      setDynamicXp(saved?.dynamicXp ?? 0);
+      setXpStreak(saved?.xpStreak ?? 0);
+    }
+  }, [isSroci, initialMode, simStorageKey]);
+
+  useEffect(() => {
+    if (!isSroci) return;
+    try {
+      const payload: PersistedSrociSimState = {
+        stageProgress,
+        practicedIds,
+        notesById,
+        trackerLog,
+        dynamicXp,
+        xpStreak,
+      };
+      window.localStorage.setItem(simStorageKey, JSON.stringify(payload));
+    } catch {
+      // Ignore storage quota or private-mode errors
+    }
+  }, [
+    isSroci,
+    simStorageKey,
+    stageProgress,
+    practicedIds,
+    notesById,
+    trackerLog,
+    dynamicXp,
+    xpStreak,
+  ]);
+
   useEffect(() => {
     if (!isSroci || !onTelemetryChange) return;
 
@@ -791,7 +888,7 @@ export function SimulationsView({
 
   const handleUpdateTrackerOutcome = (
     candidate: string,
-    status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired'
+    status: TrackerLogEntry['status']
   ) => {
     const bonus = status === 'Hired' ? 45 : status === 'Passed' ? 30 : 25;
     setDynamicXp((prev) => prev + bonus);
@@ -816,13 +913,22 @@ export function SimulationsView({
   };
 
   const handleResetSrociProgress = () => {
-    setStageProgress(createInitialStageProgress());
+    const freshStages = createInitialStageProgress();
+    setStageProgress(freshStages);
+    setPracticedIds([]);
+    setNotesById({});
+    setTrackerLog(DEFAULT_TRACKER_LOG);
     setDynamicXp(0);
     setXpStreak(0);
     setLastXpAward(null);
     setShowStageHint(false);
     setActiveStageId('ramp_check');
     setSrociSubView('cards');
+    try {
+      window.localStorage.removeItem(simStorageKey);
+    } catch {
+      // Ignore storage errors
+    }
   };
 
   const visibleSubViewStages = useMemo(() => {
@@ -869,10 +975,8 @@ export function SimulationsView({
         </div>
       </div>
 
-      {/* Interactive SROCI Pipeline Stage Cards, Sub-Views, Dynamic XP & Quest */}
       {isSroci && (
         <div className="glass-card sroci-liquid-elevated sroci-fade-panel p-4 md:p-6 space-y-5 rounded-3xl">
-          {/* Progress Header & Dynamic XP HUD */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/65 pb-4">
             <div className="space-y-1.5 flex-1 min-w-[240px]">
               <div className="flex flex-wrap items-center gap-2">
@@ -920,7 +1024,6 @@ export function SimulationsView({
             </div>
           </div>
 
-          {/* Activity Sub-View Switcher */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
               {(
@@ -956,7 +1059,6 @@ export function SimulationsView({
             </div>
           </div>
 
-          {/* Playful Stage Card Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
             {visibleSubViewStages.map((stage) => {
               const prog = stageProgress[stage.id];
@@ -999,7 +1101,6 @@ export function SimulationsView({
             })}
           </div>
 
-          {/* Active Stage Card Playground + Sub-View Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
             <div className="sroci-light-edge lg:col-span-7 rounded-2xl bg-white/60 p-4 md:p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1088,7 +1189,6 @@ export function SimulationsView({
               )}
             </div>
 
-            {/* Right Sub-View Panel: Live Shared Client Tracker & Follow-Up Sandbox */}
             <div className="sroci-light-edge lg:col-span-5 rounded-2xl bg-white/60 p-4 md:p-5 space-y-3.5">
               <div className="flex items-center justify-between gap-2">
                 <div>
@@ -1150,7 +1250,6 @@ export function SimulationsView({
             </div>
           </div>
 
-          {/* Full 6-Stage Gamified Quest Component (Kept Intact) */}
           {showInteractiveSim && (
             <div className="pt-1">
               <SrociRecruitmentSimBox
@@ -1167,7 +1266,6 @@ export function SimulationsView({
         </div>
       )}
 
-      {/* Frosted Channel & Topic Filter Bar */}
       <div className="glass-card flex flex-wrap items-center justify-between gap-4 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-slate-700 mr-1">Mode:</span>
@@ -1211,9 +1309,7 @@ export function SimulationsView({
         </div>
       </div>
 
-      {/* Two-Column Glass Practice Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Scenario List */}
         <div className="lg:col-span-4 space-y-3">
           {filteredScenarios.length === 0 ? (
             <div className="glass-card p-5 text-sm text-slate-700">
@@ -1258,7 +1354,6 @@ export function SimulationsView({
           )}
         </div>
 
-        {/* Active Scenario & Interactive Practice Panel */}
         <div className="lg:col-span-8 glass-card p-6 space-y-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
