@@ -135,6 +135,14 @@ export default function App() {
   const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
   const basePreset = getAccountDashboardPreset(accountKey);
 
+  const sidebarSubtitle =
+    accountKey === 'SROCI'
+      ? 'SROCI • Recruitment'
+      : `${dashboardAccountNameOrKey(accountKey)} • ${formattedLob}`;
+
+  const modeBadgeLabel =
+    accountKey === 'SROCI' ? 'Recruitment' : `${formattedLob} Mode`;
+
   const dashboardData: AgentDashboardData = {
     ...basePreset,
     accountName: accountKey,
@@ -173,7 +181,7 @@ export default function App() {
                   Testing Center
                 </div>
                 <div className="text-[11px] text-slate-600">
-                  {dashboardData.accountName} • {formattedLob}
+                  {sidebarSubtitle}
                 </div>
               </div>
             </div>
@@ -279,7 +287,7 @@ export default function App() {
                   {dashboardData.accountName}
                 </span>
                 <span className="rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-purple-950">
-                  {formattedLob} Mode
+                  {modeBadgeLabel}
                 </span>
                 <span className="rounded-full bg-white/65 px-2.5 py-0.5">
                   Interactive Chat Ready
@@ -298,4 +306,8 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+function dashboardAccountNameOrKey(accountKey: string): string {
+  return accountKey || 'SPAVI';
 }
