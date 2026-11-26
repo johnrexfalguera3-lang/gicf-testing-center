@@ -2,6 +2,7 @@ import { AgentDashboardData } from '../types/dashboard';
 
 interface AgentDashboardViewProps {
   data: AgentDashboardData;
+  isAdmin?: boolean;
   onQuickAction: (
     action: 'open_simulation' | 'view_full_trend' | 'view_full_scenarios'
   ) => void;
@@ -9,6 +10,7 @@ interface AgentDashboardViewProps {
 
 export function AgentDashboardView({
   data,
+  isAdmin = false,
   onQuickAction,
 }: AgentDashboardViewProps) {
   const { kpis, proficiencyTrend, scenarioBreakdown } = data;
@@ -26,20 +28,30 @@ export function AgentDashboardView({
       {/* Header Card */}
       <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
-            <span>{data.accountName}</span>
-            <span>•</span>
-            <span>{displayTrackLabel}</span>
-            <span>•</span>
-            <span className="rounded-full bg-white/75 border border-white/85 px-2.5 py-0.5 text-slate-800">
-              {data.cohortStage}
-            </span>
-          </div>
+          {isAdmin ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
+              <span className="rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-[#6b3be0]">
+                Admin
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
+              <span>{data.accountName}</span>
+              <span>•</span>
+              <span>{displayTrackLabel}</span>
+              <span>•</span>
+              <span className="rounded-full bg-white/75 border border-white/85 px-2.5 py-0.5 text-slate-800">
+                {data.cohortStage}
+              </span>
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-slate-900 mt-1">
             Welcome back, {data.agentName}
           </h1>
           <p className="text-sm text-slate-600 mt-0.5">
-            {data.accountName} practice overview and readiness summary.
+            {isAdmin
+              ? 'Testing Center administration and readiness overview.'
+              : `${data.accountName} practice overview and readiness summary.`}
           </p>
         </div>
 
@@ -172,7 +184,7 @@ export function AgentDashboardView({
                 Scenario Breakdown
               </h2>
               <p className="text-xs text-slate-600">
-                {data.accountName} practice runs by topic
+                {isAdmin ? 'System-wide' : data.accountName} practice runs by topic
               </p>
             </div>
             <button

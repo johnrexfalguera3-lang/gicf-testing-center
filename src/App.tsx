@@ -123,6 +123,7 @@ export default function App() {
     );
   }
 
+  const isAdmin = profile.role === 'admin';
   const isManagementRole = MANAGEMENT_ROLES.includes(profile.role);
 
   const formattedLob: 'Voice' | 'Chat' | 'Email' =
@@ -135,13 +136,17 @@ export default function App() {
   const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
   const basePreset = getAccountDashboardPreset(accountKey);
 
-  const sidebarSubtitle =
-    accountKey === 'SROCI'
-      ? 'SROCI • Recruitment'
-      : `${dashboardAccountNameOrKey(accountKey)} • ${formattedLob}`;
+  const sidebarSubtitle = isAdmin
+    ? 'Admin'
+    : accountKey === 'SROCI'
+    ? 'SROCI • Recruitment'
+    : `${dashboardAccountNameOrKey(accountKey)} • ${formattedLob}`;
 
-  const modeBadgeLabel =
-    accountKey === 'SROCI' ? 'Recruitment' : `${formattedLob} Mode`;
+  const modeBadgeLabel = isAdmin
+    ? 'Admin Mode'
+    : accountKey === 'SROCI'
+    ? 'Recruitment'
+    : `${formattedLob} Mode`;
 
   const dashboardData: AgentDashboardData = {
     ...basePreset,
@@ -214,7 +219,9 @@ export default function App() {
 
           <div className="glass-card mt-6 p-3 space-y-2 text-[11px] text-slate-700">
             <div className="truncate font-semibold text-slate-900">
-              {dashboardData.accountName} • {profile.email}
+              {isAdmin
+                ? `Admin • ${profile.email}`
+                : `${dashboardData.accountName} • ${profile.email}`}
             </div>
             <button
               type="button"
@@ -233,8 +240,9 @@ export default function App() {
               <div className="text-xs md:text-sm font-semibold text-slate-900">
                 Welcome back, {dashboardData.agentName}
                 <span className="ml-2 text-xs font-normal text-slate-600">
-                  ({dashboardData.accountName} • {dashboardData.cohortStage} •{' '}
-                  {profile.role})
+                  {isAdmin
+                    ? '(Admin)'
+                    : `(${dashboardData.accountName} • ${dashboardData.cohortStage} • ${profile.role})`}
                 </span>
               </div>
 
@@ -257,6 +265,7 @@ export default function App() {
               <div key="tab-dashboard" className="tab-panel-animate">
                 <AgentDashboardView
                   data={dashboardData}
+                  isAdmin={isAdmin}
                   onQuickAction={(action) => {
                     if (action === 'open_simulation') setActiveTab('simulations');
                   }}
@@ -284,7 +293,7 @@ export default function App() {
             <div className="glass-card flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[11px] font-medium text-slate-700">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-white/75 border border-white px-2.5 py-0.5 text-slate-900">
-                  {dashboardData.accountName}
+                  {isAdmin ? 'Admin' : dashboardData.accountName}
                 </span>
                 <span className="rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-purple-950">
                   {modeBadgeLabel}
