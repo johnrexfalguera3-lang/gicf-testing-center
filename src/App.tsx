@@ -170,6 +170,7 @@ export default function App() {
     ? activeTab
     : 'dashboard';
 
+  const isSrociSimScrollLock = isSroci && safeActiveTab === 'simulations';
   const navMotionClass = isSroci ? 'sroci-alive-btn' : '';
 
   return (
@@ -179,18 +180,20 @@ export default function App() {
       } min-h-screen text-slate-800 p-3 md:p-6`}
     >
       <div
-        className={`mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row ${
+        className={`mx-auto max-w-[1400px] rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row ${
+          isSrociSimScrollLock
+            ? 'min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)] md:overflow-hidden'
+            : 'min-h-[calc(100vh-3rem)] overflow-hidden'
+        } ${
           isSroci
-            ? 'overflow-visible shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]'
-            : 'overflow-hidden shadow-[0_24px_60px_rgba(15,23,42,0.14)]'
+            ? 'shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]'
+            : 'shadow-[0_24px_60px_rgba(15,23,42,0.14)]'
         }`}
       >
         {/* Glass Left Sidebar */}
         <aside
           className={`w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0 ${
-            isSroci
-              ? 'md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:rounded-l-3xl z-20'
-              : ''
+            isSrociSimScrollLock ? 'md:h-full md:overflow-y-auto z-20' : ''
           }`}
         >
           <div>
@@ -253,7 +256,11 @@ export default function App() {
         </aside>
 
         {/* Main Glass Workspace */}
-        <div className="flex-1 flex flex-col justify-between min-w-0">
+        <div
+          className={`flex-1 flex flex-col justify-between min-w-0 ${
+            isSrociSimScrollLock ? 'md:h-full md:overflow-y-auto' : ''
+          }`}
+        >
           <div className="p-4 md:p-6 space-y-5">
             <header className="glass-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div className="text-xs md:text-sm font-semibold text-slate-900">
