@@ -143,7 +143,7 @@ export default function App() {
 
   const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
   const isSroci = accountKey === 'SROCI' && !isAdmin;
-  const canAccessSrociAcademy = accountKey === 'SROCI' || isAdmin;
+  const canAccessSrociAcademy = isSroci;
   const basePreset = getAccountDashboardPreset(accountKey);
 
   const sidebarSubtitle = isAdmin
@@ -327,7 +327,7 @@ export default function App() {
                       )}
                     </button>
 
-                    {/* Place SROCI Academy directly below Simulations */}
+                    {/* Place SROCI Academy directly below Simulations for SROCI users only */}
                     {tab.id === 'simulations' && canAccessSrociAcademy && (
                       <button
                         type="button"
