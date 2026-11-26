@@ -101,7 +101,7 @@ export default function App() {
 
   if (!sessionChecked) {
     return (
-      <div className="glass-canvas min-h-screen flex items-center justify-center text-sm text-slate-700">
+      <div className="glass-canvas sroci-liquid-shell min-h-screen flex items-center justify-center text-sm text-slate-700">
         Checking session...
       </div>
     );
@@ -109,7 +109,7 @@ export default function App() {
 
   if (!isAuthenticated || !profile) {
     return (
-      <div className="glass-canvas min-h-screen">
+      <div className="glass-canvas sroci-liquid-shell min-h-screen">
         {authError && (
           <div className="bg-rose-600/90 backdrop-blur-md text-white text-xs text-center py-2 px-4">
             {authError}
@@ -139,13 +139,13 @@ export default function App() {
 
   const sidebarSubtitle = isAdmin
     ? 'Admin'
-    : accountKey === 'SROCI'
+    : isSroci
     ? 'SROCI • Recruitment'
     : `${dashboardAccountNameOrKey(accountKey)} • ${formattedLob}`;
 
   const modeBadgeLabel = isAdmin
     ? 'Admin Mode'
-    : accountKey === 'SROCI'
+    : isSroci
     ? 'Recruitment'
     : `${formattedLob} Mode`;
 
@@ -170,39 +170,14 @@ export default function App() {
     ? activeTab
     : 'dashboard';
 
-  const isSrociScrollLock = isSroci;
-  const navMotionClass = isSroci ? 'sroci-alive-btn' : '';
+  const navMotionClass = 'sroci-alive-btn';
 
   return (
-    <div
-      className={`glass-canvas ${
-        isSroci ? 'sroci-liquid-shell sroci-liquid-theme' : ''
-      } min-h-screen text-slate-800 p-3 md:p-6`}
-    >
-      <div
-        className={`mx-auto max-w-[1400px] rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row ${
-          isSrociScrollLock
-            ? 'min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)] md:overflow-hidden'
-            : 'min-h-[calc(100vh-3rem)] overflow-hidden'
-        } ${
-          isSroci
-            ? 'shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]'
-            : 'shadow-[0_24px_60px_rgba(15,23,42,0.14)]'
-        }`}
-      >
+    <div className="glass-canvas sroci-liquid-shell sroci-liquid-theme min-h-screen text-slate-800 p-3 md:p-6">
+      <div className="mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)] md:overflow-hidden rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]">
         {/* Glass Left Sidebar */}
-        <aside
-          className={`w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0 ${
-            isSrociScrollLock ? 'md:h-full md:min-h-0 z-20' : ''
-          }`}
-        >
-          <div
-            className={
-              isSrociScrollLock
-                ? 'flex flex-col min-h-0 flex-1 overflow-hidden'
-                : ''
-            }
-          >
+        <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0 md:h-full md:min-h-0 z-20">
+          <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
             <div className="glass-card flex items-center gap-3 px-3.5 py-2.5 mb-5 shrink-0">
               <img
                 src="/gicf-logo.jpg"
@@ -219,11 +194,7 @@ export default function App() {
               </div>
             </div>
 
-            <nav
-              className={`space-y-1.5 ${
-                isSrociScrollLock ? 'overflow-y-auto pr-0.5 flex-1' : ''
-              }`}
-            >
+            <nav className="space-y-1.5 overflow-y-auto pr-0.5 flex-1">
               {visibleTabs.map((tab) => {
                 const isActive = safeActiveTab === tab.id;
                 return (
@@ -249,11 +220,7 @@ export default function App() {
             </nav>
           </div>
 
-          <div
-            className={`glass-card p-3 space-y-2 text-[11px] text-slate-700 shrink-0 ${
-              isSrociScrollLock ? 'mt-4' : 'mt-6'
-            }`}
-          >
+          <div className="glass-card mt-4 p-3 space-y-2 text-[11px] text-slate-700 shrink-0">
             <div className="truncate font-semibold text-slate-900">
               {isAdmin
                 ? `Admin • ${profile.email}`
@@ -270,11 +237,7 @@ export default function App() {
         </aside>
 
         {/* Main Glass Workspace */}
-        <div
-          className={`flex-1 flex flex-col justify-between min-w-0 ${
-            isSrociScrollLock ? 'md:h-full md:min-h-0 md:overflow-y-auto' : ''
-          }`}
-        >
+        <div className="flex-1 flex flex-col justify-between min-w-0 md:h-full md:min-h-0 md:overflow-y-auto md:pr-1">
           <div className="p-4 md:p-6 space-y-5">
             <header className="glass-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div className="text-xs md:text-sm font-semibold text-slate-900">

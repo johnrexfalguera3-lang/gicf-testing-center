@@ -78,7 +78,7 @@
     animation: tabFadeIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
-  /* SROCI-first Alive Button & Smooth Fade Motion */
+  /* Global Alive Button & Smooth Fade Motion */
   .sroci-alive-btn {
     transition:
       transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -102,7 +102,7 @@
     animation: srociPanelFade 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
-  /* SROCI-first Liquid Glass, Light Edges & Multi-Layer Depth */
+  /* Global Liquid Glass, Light Edges & Multi-Layer Depth */
   .sroci-liquid-shell {
     background:
       radial-gradient(circle at 12% 14%, rgba(126, 76, 246, 0.34), transparent 42%),
@@ -112,7 +112,8 @@
   }
 
   .sroci-liquid-theme .glass-card,
-  .sroci-liquid-theme .sroci-liquid-card {
+  .sroci-liquid-theme .sroci-liquid-card,
+  .glass-card.sroci-liquid-card {
     position: relative;
     background: linear-gradient(
       145deg,
@@ -134,7 +135,8 @@
       0 4px 14px rgba(126, 76, 246, 0.09);
   }
 
-  .sroci-liquid-theme .sroci-liquid-elevated {
+  .sroci-liquid-theme .sroci-liquid-elevated,
+  .sroci-liquid-elevated {
     background: linear-gradient(
       155deg,
       rgba(255, 255, 255, 0.58) 0%,
@@ -152,7 +154,8 @@
       0 8px 20px rgba(126, 76, 246, 0.14);
   }
 
-  .sroci-liquid-theme .sroci-light-edge {
+  .sroci-liquid-theme .sroci-light-edge,
+  .sroci-light-edge {
     backdrop-filter: blur(22px) saturate(185%);
     -webkit-backdrop-filter: blur(22px) saturate(185%);
     border: 1px solid rgba(255, 255, 255, 0.92);
@@ -163,7 +166,7 @@
       0 10px 26px rgba(15, 23, 42, 0.1);
   }
 
-  /* Subtle SROCI scrollbar that blends with liquid glass */
+  /* Subtle global scrollbar that blends with liquid glass */
   .sroci-liquid-theme,
   .sroci-liquid-theme * {
     scrollbar-width: thin;

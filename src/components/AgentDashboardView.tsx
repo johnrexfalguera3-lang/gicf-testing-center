@@ -16,9 +16,8 @@ export function AgentDashboardView({
 }: AgentDashboardViewProps) {
   const { kpis, proficiencyTrend, scenarioBreakdown } = data;
 
-  const isSroci = data.accountName?.trim().toUpperCase() === 'SROCI' && !isAdmin;
-  const displayTrackLabel =
-    data.accountName?.trim().toUpperCase() === 'SROCI' ? 'RECRUITMENT' : data.lob;
+  const isRecruitmentTrack = data.accountName?.trim().toUpperCase() === 'SROCI';
+  const displayTrackLabel = isRecruitmentTrack ? 'RECRUITMENT' : data.lob;
 
   const [hoveredPreview, setHoveredPreview] = useState<
     'trend' | 'scenarios' | null
@@ -33,7 +32,6 @@ export function AgentDashboardView({
   };
 
   const handleHoverStart = (panel: 'trend' | 'scenarios') => {
-    if (!isSroci) return;
     clearHoverTimer();
     hoverTimerRef.current = window.setTimeout(() => {
       setHoveredPreview(panel);
@@ -54,10 +52,10 @@ export function AgentDashboardView({
     1
   );
 
-  const btnMotion = isSroci ? 'sroci-alive-btn' : '';
-  const panelFade = isSroci ? 'sroci-fade-panel' : '';
-  const elevatedCard = isSroci ? 'sroci-liquid-elevated' : '';
-  const lightEdgeCard = isSroci ? 'sroci-light-edge' : '';
+  const btnMotion = 'sroci-alive-btn';
+  const panelFade = 'sroci-fade-panel';
+  const elevatedCard = 'sroci-liquid-elevated';
+  const lightEdgeCard = 'sroci-light-edge';
 
   return (
     <div className={`space-y-5 ${panelFade}`}>
@@ -220,24 +218,22 @@ export function AgentDashboardView({
             ))}
           </div>
 
-          {isSroci && (
-            <div
-              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
-                hoveredPreview === 'trend'
-                  ? 'opacity-100 translate-y-0 max-h-24'
-                  : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
-              }`}
-            >
-              <span className="font-semibold text-[#6b3be0]">
-                SROCI Trend Snapshot:
-              </span>{' '}
-              Latest run reached{' '}
-              <strong>
-                {proficiencyTrend[proficiencyTrend.length - 1]?.score ?? 90}%
-              </strong>{' '}
-              across prescreening, walk-in invites, and client tracker updates.
-            </div>
-          )}
+          <div
+            className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
+              hoveredPreview === 'trend'
+                ? 'opacity-100 translate-y-0 max-h-24'
+                : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
+            }`}
+          >
+            <span className="font-semibold text-[#6b3be0]">
+              {isAdmin ? 'System-wide' : data.accountName} Trend Snapshot:
+            </span>{' '}
+            Latest run reached{' '}
+            <strong>
+              {proficiencyTrend[proficiencyTrend.length - 1]?.score ?? 90}%
+            </strong>{' '}
+            against the {proficiencyTrend[0]?.target ?? 80}% readiness target.
+          </div>
         </div>
 
         <div
@@ -289,21 +285,19 @@ export function AgentDashboardView({
             })}
           </div>
 
-          {isSroci && (
-            <div
-              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
-                hoveredPreview === 'scenarios'
-                  ? 'opacity-100 translate-y-0 max-h-24'
-                  : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
-              }`}
-            >
-              <span className="font-semibold text-[#6b3be0]">
-                SROCI Pipeline Focus:
-              </span>{' '}
-              Covers ramp checks, job posts, prescreening, profile validation,
-              walk-in invites, and client tracker follow-ups.
-            </div>
-          )}
+          <div
+            className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
+              hoveredPreview === 'scenarios'
+                ? 'opacity-100 translate-y-0 max-h-24'
+                : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
+            }`}
+          >
+            <span className="font-semibold text-[#6b3be0]">
+              {isAdmin ? 'System-wide' : data.accountName} Topic Focus:
+            </span>{' '}
+            Tracks completed practice runs by scenario category so learners and
+            leads can spot gaps quickly.
+          </div>
         </div>
       </div>
     </div>
