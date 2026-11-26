@@ -140,7 +140,7 @@ export default function App() {
     if (isSigningOut) return;
     setIsSigningOut(true);
 
-    await new Promise((resolve) => window.setTimeout(resolve, 650));
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
     await supabase.auth.signOut();
 
     setProfile(null);
