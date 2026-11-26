@@ -13,6 +13,49 @@ type TopicFilter =
   | 'Screening & Validation'
   | 'Walk-In & Tracker';
 
+type SrociStageId =
+  | 'ramp_check'
+  | 'job_posting'
+  | 'prescreening'
+  | 'profile_validation'
+  | 'walk_in_invite'
+  | 'client_tracker'
+  | 'status_followup';
+
+type SrociSubView =
+  | 'cards'
+  | 'ramp_post'
+  | 'prescreen_validate'
+  | 'walkin_tracker';
+
+interface SrociStageDefinition {
+  id: SrociStageId;
+  stepNumber: number;
+  title: string;
+  shortLabel: string;
+  badge: string;
+  subView: Exclude<SrociSubView, 'cards'>;
+  baseXp: number;
+  promptQuestion: string;
+  hint: string;
+  options: {
+    id: string;
+    label: string;
+    detail: string;
+    isOptimal: boolean;
+    outcomeLabel: string;
+    coaching: string;
+  }[];
+}
+
+interface StageProgressState {
+  completed: boolean;
+  attempts: number;
+  usedHint: boolean;
+  xpEarned: number;
+  statusNote: string;
+}
+
 interface ScenarioItem {
   id: string;
   accountScope: 'SPAVI' | 'SROCI';
@@ -30,6 +73,219 @@ interface SimulationsViewProps {
   accountName: string;
   lob?: 'Voice' | 'Chat' | 'Email';
 }
+
+const SROCI_PIPELINE_STAGES: SrociStageDefinition[] = [
+  {
+    id: 'ramp_check',
+    stepNumber: 1,
+    title: 'Ramp Check',
+    shortLabel: 'Ramp Check',
+    badge: 'Client Brief',
+    subView: 'ramp_post',
+    baseXp: 90,
+    promptQuestion:
+      'Client ramp sheet says 20 seats urgent, but shift shows "Night" on tab 1 and "Day" on tab 2 with no site address. What do you do first?',
+    hint: 'Verify shift schedule, headcount target, and walk-in site address before publishing or screening.',
+    options: [
+      {
+        id: 'a',
+        label: 'Confirm shift, headcount & site location with client/lead before posting',
+        detail: 'Prevents conflicting job ads and candidate confusion',
+        isOptimal: true,
+        outcomeLabel: 'Ramp Verified ✓',
+        coaching: 'Great ramp check—confirming conflicting shift and site info early protects pipeline accuracy.',
+      },
+      {
+        id: 'b',
+        label: 'Start sourcing immediately using tab 1 only',
+        detail: 'Assumes tab 1 is final without checking tab 2',
+        isOptimal: false,
+        outcomeLabel: 'Needs Recheck',
+        coaching: 'Always reconcile ramp discrepancies first so recruiters and applicants work from one source of truth.',
+      },
+    ],
+  },
+  {
+    id: 'job_posting',
+    stepNumber: 2,
+    title: 'Job Posting',
+    shortLabel: 'Job Post',
+    badge: 'Sourcing Ad',
+    subView: 'ramp_post',
+    baseXp: 95,
+    promptQuestion:
+      'Ramp details are confirmed for Night Shift (10 PM – 7 AM) at Ortigas Walk-In Hub. Which job post setup is strongest?',
+    hint: 'Include clear role title, shift schedule, site walk-in expectation, and key qualifications.',
+    options: [
+      {
+        id: 'a',
+        label: 'Publish clear ad with role, Night Shift schedule, Ortigas walk-in info & key fit points',
+        detail: 'Attracts aligned applicants ready for walk-in',
+        isOptimal: true,
+        outcomeLabel: 'Job Post Live ✓',
+        coaching: 'Clear shift and walk-in expectations filter in better-fit candidates right from the job post.',
+      },
+      {
+        id: 'b',
+        label: 'Post a vague 1-line ad with no shift or site details',
+        detail: 'High volume, low walk-in alignment',
+        isOptimal: false,
+        outcomeLabel: 'Needs Polish',
+        coaching: 'Vague job posts lead to mismatched prescreens and walk-in drop-offs.',
+      },
+    ],
+  },
+  {
+    id: 'prescreening',
+    stepNumber: 3,
+    title: 'Prescreening',
+    shortLabel: 'Prescreen',
+    badge: 'Knockout & Fit',
+    subView: 'prescreen_validate',
+    baseXp: 100,
+    promptQuestion:
+      'Applicant says they love the role but can only work Day Shift and cannot visit the site. What is your move?',
+    hint: 'Check non-negotiable shift and site walk-in fit during prescreening.',
+    options: [
+      {
+        id: 'a',
+        label: 'Politely explain Night/site requirements, disposition for this ramp, or log for matching roles',
+        detail: 'Respectful candidate closure + clean funnel',
+        isOptimal: true,
+        outcomeLabel: 'Screened & Dispositioned ✓',
+        coaching: 'Firm, polite prescreening keeps walk-in slots focused on qualified, available candidates.',
+      },
+      {
+        id: 'b',
+        label: 'Endorse anyway to hit daily outreach count',
+        detail: 'Sends mismatched candidate forward',
+        isOptimal: false,
+        outcomeLabel: 'Needs Focus',
+        coaching: 'Endorsing unaligned applicants hurts client quality and conversion metrics.',
+      },
+    ],
+  },
+  {
+    id: 'profile_validation',
+    stepNumber: 4,
+    title: 'Profile Validation',
+    shortLabel: 'Validate',
+    badge: 'Data & Fit Audit',
+    subView: 'prescreen_validate',
+    baseXp: 105,
+    promptQuestion:
+      'Candidate passed prescreening. Their profile has a typo in their mobile number and a 15-day notice period. How do you validate?',
+    hint: 'Confirm reachable contact details, work/notice availability, and accurate profile fields.',
+    options: [
+      {
+        id: 'a',
+        label: 'Verify working mobile number, confirm 15-day notice window, and update profile notes',
+        detail: 'Accurate contact + realistic start expectation',
+        isOptimal: true,
+        outcomeLabel: 'Profile Validated ✓',
+        coaching: 'Clean contact verification and notice-period clarity prevent downstream bottlenecks.',
+      },
+      {
+        id: 'b',
+        label: 'Skip contact check and mark profile "Ready for Hire"',
+        detail: 'Unverified phone & unconfirmed notice',
+        isOptimal: false,
+        outcomeLabel: 'Needs Audit',
+        coaching: 'Always verify reachable contact details and notice availability during profile validation.',
+      },
+    ],
+  },
+  {
+    id: 'walk_in_invite',
+    stepNumber: 5,
+    title: 'Walk-In Invite',
+    shortLabel: 'Walk-In',
+    badge: 'Site Invite',
+    subView: 'walkin_tracker',
+    baseXp: 110,
+    promptQuestion:
+      'Candidate is validated for tomorrow’s site walk-in. What makes your walk-in invite most effective?',
+    hint: 'Include date, reporting time, exact site address/landmarks, valid ID/CV reminder, and confirmation ask.',
+    options: [
+      {
+        id: 'a',
+        label: 'Send exact date, time, site address, required ID/CV & ask candidate to reply "Confirmed"',
+        detail: 'High clarity + show-up confirmation',
+        isOptimal: true,
+        outcomeLabel: 'Walk-In Invited ✓',
+        coaching: 'Clear logistics plus a confirmation reply significantly improves walk-in show rates.',
+      },
+      {
+        id: 'b',
+        label: 'Send "See you at the site tomorrow" without time, address, or ID reminders',
+        detail: 'Incomplete walk-in instructions',
+        isOptimal: false,
+        outcomeLabel: 'Needs Detail',
+        coaching: 'Incomplete walk-in invites often result in late arrivals or no-shows.',
+      },
+    ],
+  },
+  {
+    id: 'client_tracker',
+    stepNumber: 6,
+    title: 'Client Tracker',
+    shortLabel: 'Tracker',
+    badge: 'Endorsement Log',
+    subView: 'walkin_tracker',
+    baseXp: 115,
+    promptQuestion:
+      'Candidate completed walk-in assessment and is endorsed to the client. How do you log them in the shared client tracker?',
+    hint: 'Enter complete, accurate candidate details and set endorsement status cleanly without overwriting rows.',
+    options: [
+      {
+        id: 'a',
+        label: 'Add a complete new row with accurate name, contact, date & "Endorsed" status',
+        detail: 'Clean shared tracker record',
+        isOptimal: true,
+        outcomeLabel: 'Endorsed in Tracker ✓',
+        coaching: 'Accurate, non-destructive tracker entries keep recruiter and client counts in sync.',
+      },
+      {
+        id: 'b',
+        label: 'Leave status blank or edit someone else’s candidate row',
+        detail: 'Tracker discrepancy risk',
+        isOptimal: false,
+        outcomeLabel: 'Needs Correction',
+        coaching: 'Keep every tracker entry complete and accurate so endorsements are easy to audit.',
+      },
+    ],
+  },
+  {
+    id: 'status_followup',
+    stepNumber: 7,
+    title: 'Status Follow-Up',
+    shortLabel: 'Follow-Up',
+    badge: 'Passed / Failed / Hired',
+    subView: 'walkin_tracker',
+    baseXp: 125,
+    promptQuestion:
+      'Client updates the shared tracker: Candidate A is HIRED, Candidate B PASSED final stage, and Candidate C FAILED. What is your follow-up?',
+    hint: 'Update statuses consistently in the tracker and follow up appropriately for Hired, Passed, and Failed outcomes.',
+    options: [
+      {
+        id: 'a',
+        label: 'Sync Hired / Passed / Failed statuses in tracker, guide Hired/Passed next steps & close Failed politely',
+        detail: 'Complete status loop & candidate care',
+        isOptimal: true,
+        outcomeLabel: 'Follow-Up Complete ✓',
+        coaching: 'Following up on Hired, Passed, and Failed statuses closes the recruitment loop cleanly.',
+      },
+      {
+        id: 'b',
+        label: 'Leave all three on "Endorsed" and skip candidate updates',
+        detail: 'Outdated tracker & unanswered candidates',
+        isOptimal: false,
+        outcomeLabel: 'Needs Follow-Up',
+        coaching: 'Timely status updates and follow-ups keep both candidates and client trackers aligned.',
+      },
+    ],
+  },
+];
 
 const SCENARIOS: ScenarioItem[] = [
   // SPAVI Customer Support Scenarios
@@ -280,6 +536,19 @@ const SCENARIOS: ScenarioItem[] = [
   },
 ];
 
+function createInitialStageProgress(): Record<SrociStageId, StageProgressState> {
+  return SROCI_PIPELINE_STAGES.reduce((acc, stage) => {
+    acc[stage.id] = {
+      completed: false,
+      attempts: 0,
+      usedHint: false,
+      xpEarned: 0,
+      statusNote: 'Ready to play',
+    };
+    return acc;
+  }, {} as Record<SrociStageId, StageProgressState>);
+}
+
 export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
   const normalizedAccount = (accountName || 'SPAVI').trim().toUpperCase();
   const isSroci = normalizedAccount === 'SROCI';
@@ -310,10 +579,34 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
   );
   const [showInteractiveSim, setShowInteractiveSim] = useState<boolean>(isSroci);
 
+  // Interactive SROCI Stage Cards, Sub-Views & Dynamic XP State
+  const [srociSubView, setSrociSubView] = useState<SrociSubView>('cards');
+  const [activeStageId, setActiveStageId] = useState<SrociStageId>('ramp_check');
+  const [stageProgress, setStageProgress] = useState<Record<SrociStageId, StageProgressState>>(
+    () => createInitialStageProgress()
+  );
+  const [showStageHint, setShowStageHint] = useState<boolean>(false);
+  const [dynamicXp, setDynamicXp] = useState<number>(0);
+  const [xpStreak, setXpStreak] = useState<number>(0);
+  const [lastXpAward, setLastXpAward] = useState<{
+    total: number;
+    breakdown: string[];
+    feedback: string;
+    isOptimal: boolean;
+  } | null>(null);
+  const [trackerLog, setTrackerLog] = useState<
+    { candidate: string; stage: string; status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired'; updatedBy: string }[]
+  >([
+    { candidate: 'M. Reyes', stage: 'Prescreening', status: 'Walk-In Scheduled', updatedBy: 'SROCI' },
+    { candidate: 'A. Mendoza', stage: 'Profile Validation', status: 'Endorsed', updatedBy: 'SROCI' },
+    { candidate: 'H. Lim', stage: 'Status Follow-Up', status: 'Hired', updatedBy: 'Client Tracker' },
+  ]);
+
   useEffect(() => {
     setMode(initialMode);
     setTopic('All');
     setShowInteractiveSim(isSroci);
+    setSrociSubView('cards');
     const firstForAccount = SCENARIOS.find(
       (s) => s.accountScope === (isSroci ? 'SROCI' : 'SPAVI')
     );
@@ -355,6 +648,143 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
     );
   };
 
+  const activeStageDef = useMemo(
+    () =>
+      SROCI_PIPELINE_STAGES.find((st) => st.id === activeStageId) ??
+      SROCI_PIPELINE_STAGES[0],
+    [activeStageId]
+  );
+
+  const completedStageCount = useMemo(
+    () =>
+      SROCI_PIPELINE_STAGES.filter((st) => stageProgress[st.id]?.completed).length,
+    [stageProgress]
+  );
+
+  const completionPercent = Math.round(
+    (completedStageCount / SROCI_PIPELINE_STAGES.length) * 100
+  );
+
+  const recruiterRank = useMemo(() => {
+    if (dynamicXp >= 650) return 'SROCI Pipeline Master';
+    if (dynamicXp >= 350) return 'Walk-In & Tracker Pro';
+    if (dynamicXp >= 150) return 'Active Sourcer';
+    return 'Onboarding Screener';
+  }, [dynamicXp]);
+
+  const handleSelectStageCard = (stage: SrociStageDefinition, openSubView = false) => {
+    setActiveStageId(stage.id);
+    setShowStageHint(false);
+    setLastXpAward(null);
+    if (openSubView) {
+      setSrociSubView(stage.subView);
+    }
+  };
+
+  const handlePlayStageOption = (
+    stage: SrociStageDefinition,
+    option: SrociStageDefinition['options'][number]
+  ) => {
+    const prevState = stageProgress[stage.id];
+    const priorAttempts = prevState?.attempts ?? 0;
+    const hintUsed = Boolean(prevState?.usedHint || showStageHint);
+
+    let earned = 0;
+    let breakdown: string[] = [];
+    let nextStreak = xpStreak;
+
+    if (option.isOptimal) {
+      nextStreak = xpStreak + 1;
+      const firstTryBonus = priorAttempts === 0 && !prevState?.completed ? 35 : 0;
+      const noHintBonus = !hintUsed ? 20 : 0;
+      const streakBonus = Math.min(nextStreak, 5) * 15;
+      const replayFactor = prevState?.completed ? 0.5 : 1;
+      const baseAward = Math.round(stage.baseXp * replayFactor);
+
+      earned = baseAward + firstTryBonus + noHintBonus + streakBonus;
+      breakdown = [
+        prevState?.completed ? `+${baseAward} Replay` : `+${baseAward} Base`,
+      ];
+      if (firstTryBonus > 0) breakdown.push(`+${firstTryBonus} First-Try`);
+      if (noHintBonus > 0) breakdown.push(`+${noHintBonus} No-Hint`);
+      if (streakBonus > 0) breakdown.push(`+${streakBonus} ${nextStreak}x Streak`);
+    } else {
+      nextStreak = 0;
+      earned = 15;
+      breakdown = ['+15 Drill Attempt'];
+    }
+
+    setXpStreak(nextStreak);
+    setDynamicXp((prev) => prev + earned);
+    setLastXpAward({
+      total: earned,
+      breakdown,
+      feedback: option.coaching,
+      isOptimal: option.isOptimal,
+    });
+
+    setStageProgress((prev) => ({
+      ...prev,
+      [stage.id]: {
+        completed: option.isOptimal ? true : prev[stage.id].completed,
+        attempts: priorAttempts + 1,
+        usedHint: hintUsed,
+        xpEarned: (prev[stage.id]?.xpEarned ?? 0) + earned,
+        statusNote: option.outcomeLabel,
+      },
+    }));
+
+    if (option.isOptimal && !practicedIds.includes(activeScenario.id)) {
+      setPracticedIds((prev) => [...prev, activeScenario.id]);
+    }
+  };
+
+  const handleUpdateTrackerOutcome = (
+    candidate: string,
+    status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired'
+  ) => {
+    const bonus = status === 'Hired' ? 45 : status === 'Passed' ? 30 : 25;
+    setDynamicXp((prev) => prev + bonus);
+    setLastXpAward({
+      total: bonus,
+      breakdown: [`+${bonus} Tracker Sync`],
+      feedback: `Updated ${candidate} to "${status}" in the shared tracker and synced follow-up progress.`,
+      isOptimal: true,
+    });
+    setTrackerLog((prev) => [
+      {
+        candidate,
+        stage: status === 'Hired' || status === 'Passed' || status === 'Failed' ? 'Status Follow-Up' : 'Client Tracker',
+        status,
+        updatedBy: 'You (Live)',
+      },
+      ...prev.slice(0, 5),
+    ]);
+  };
+
+  const handleResetSrociProgress = () => {
+    setStageProgress(createInitialStageProgress());
+    setDynamicXp(0);
+    setXpStreak(0);
+    setLastXpAward(null);
+    setShowStageHint(false);
+    setActiveStageId('ramp_check');
+    setSrociSubView('cards');
+  };
+
+  const visibleSubViewStages = useMemo(() => {
+    if (srociSubView === 'ramp_post') {
+      return SROCI_PIPELINE_STAGES.filter((s) => s.subView === 'ramp_post');
+    }
+    if (srociSubView === 'prescreen_validate') {
+      return SROCI_PIPELINE_STAGES.filter((s) => s.subView === 'prescreen_validate');
+    }
+    if (srociSubView === 'walkin_tracker') {
+      return SROCI_PIPELINE_STAGES.filter((s) => s.subView === 'walkin_tracker');
+    }
+    return SROCI_PIPELINE_STAGES;
+  }, [srociSubView]);
+
   return (
     <div className="space-y-5">
       <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
@@ -375,7 +805,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
             <button
               type="button"
               onClick={() => setShowInteractiveSim((prev) => !prev)}
-              className="rounded-xl bg-[#7e4cf6] px-3.5 py-1.5 text-xs font-semibold text-white border border-white/30 hover:bg-[#6b3be0] transition cursor-pointer"
+              className="sroci-alive-btn rounded-xl bg-[#7e4cf6] px-3.5 py-1.5 text-xs font-semibold text-white border border-white/30 hover:bg-[#6b3be0] transition cursor-pointer"
             >
               {showInteractiveSim ? 'Hide Pipeline Quest' : 'Launch Pipeline Quest'}
             </button>
@@ -386,16 +816,302 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
         </div>
       </div>
 
-      {/* Gamified End-to-End SROCI Pipeline Quest */}
-      {isSroci && showInteractiveSim && (
-        <SrociRecruitmentSimBox
-          lob={mode}
-          onCompleteSession={() => {
-            if (!practicedIds.includes(activeScenario.id)) {
-              setPracticedIds((prev) => [...prev, activeScenario.id]);
-            }
-          }}
-        />
+      {/* Interactive SROCI Pipeline Stage Cards, Sub-Views, Dynamic XP & Quest */}
+      {isSroci && (
+        <div className="glass-card sroci-liquid-elevated sroci-fade-panel p-4 md:p-6 space-y-5 rounded-3xl">
+          {/* Progress Header & Dynamic XP HUD */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/65 pb-4">
+            <div className="space-y-1.5 flex-1 min-w-[240px]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#7e4cf6]/15 border border-white/80 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#6b3be0]">
+                  Interactive Pipeline Cards
+                </span>
+                <span className="rounded-full bg-white/80 border border-white px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                  {recruiterRank}
+                </span>
+                <span className="text-xs font-bold text-slate-800">
+                  {completedStageCount}/{SROCI_PIPELINE_STAGES.length} Stages ({completionPercent}%)
+                </span>
+              </div>
+
+              <div className="h-2.5 w-full max-w-md rounded-full bg-white/65 border border-white/85 overflow-hidden">
+                <div
+                  style={{ width: `${completionPercent}%` }}
+                  className="h-full rounded-full bg-gradient-to-r from-[#6b3be0] via-[#7e4cf6] to-[#38bdf8] transition-all duration-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="sroci-light-edge rounded-2xl bg-white/75 px-3.5 py-2 text-center">
+                <div className="text-[10px] font-semibold uppercase text-slate-500">
+                  Dynamic XP
+                </div>
+                <div className="text-sm font-bold text-[#7e4cf6]">{dynamicXp} XP</div>
+              </div>
+              <div className="sroci-light-edge rounded-2xl bg-white/75 px-3.5 py-2 text-center">
+                <div className="text-[10px] font-semibold uppercase text-slate-500">
+                  Streak
+                </div>
+                <div className="text-sm font-bold text-amber-700">
+                  {xpStreak > 0 ? `🔥 ${xpStreak}x` : '0x'}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetSrociProgress}
+                className="sroci-alive-btn glass-btn rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 cursor-pointer"
+              >
+                Reset Progress
+              </button>
+            </div>
+          </div>
+
+          {/* Activity Sub-View Switcher (Opens Focused Mini-Activities or All Cards) */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  { id: 'cards', label: 'All Stage Cards (7)' },
+                  { id: 'ramp_post', label: '1. Ramp & Job Post Activity' },
+                  { id: 'prescreen_validate', label: '2. Prescreen & Validate Activity' },
+                  { id: 'walkin_tracker', label: '3. Walk-In & Tracker Follow-Up' },
+                ] as { id: SrociSubView; label: string }[]
+              ).map((tab) => {
+                const active = srociSubView === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      setSrociSubView(tab.id);
+                      setShowStageHint(false);
+                      setLastXpAward(null);
+                      const matching = SROCI_PIPELINE_STAGES.find((s) => s.subView === tab.id);
+                      if (matching) setActiveStageId(matching.id);
+                    }}
+                    className={`sroci-alive-btn rounded-xl px-3 py-1.5 text-xs font-semibold cursor-pointer ${
+                      active
+                        ? 'bg-[#7e4cf6] text-white border border-white/45 shadow-sm'
+                        : 'glass-btn text-slate-800'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Playful Stage Card Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+            {visibleSubViewStages.map((stage) => {
+              const prog = stageProgress[stage.id];
+              const isSelected = stage.id === activeStageId;
+              return (
+                <button
+                  key={stage.id}
+                  type="button"
+                  onClick={() => handleSelectStageCard(stage, false)}
+                  className={`sroci-alive-btn sroci-light-edge text-left rounded-2xl p-3 flex flex-col justify-between gap-2 cursor-pointer ${
+                    isSelected
+                      ? 'bg-white/95 border-[#7e4cf6] ring-2 ring-[#7e4cf6]/30 -translate-y-1'
+                      : prog?.completed
+                      ? 'bg-emerald-50/75 border-emerald-400/70'
+                      : 'bg-white/55 hover:bg-white/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 text-[10px] font-bold">
+                    <span className="text-[#6b3be0]">STEP {stage.stepNumber}</span>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 ${
+                        prog?.completed
+                          ? 'bg-emerald-500/20 text-emerald-900'
+                          : 'bg-white/80 text-slate-600'
+                      }`}
+                    >
+                      {prog?.completed ? '✓ Done' : `+${stage.baseXp} XP`}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900 leading-snug">
+                      {stage.title}
+                    </div>
+                    <div className="text-[10px] text-slate-600 mt-0.5 truncate">
+                      {prog?.statusNote ?? stage.badge}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Stage Card Playground + Sub-View Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <div className="sroci-light-edge lg:col-span-7 rounded-2xl bg-white/60 p-4 md:p-5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-[#6b3be0]">
+                    Step {activeStageDef.stepNumber} of 7 • {activeStageDef.badge}
+                  </div>
+                  <h3 className="text-base md:text-lg font-bold text-slate-900">
+                    {activeStageDef.title} — Interactive Challenge
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowStageHint((prev) => !prev);
+                    setStageProgress((prev) => ({
+                      ...prev,
+                      [activeStageDef.id]: {
+                        ...prev[activeStageDef.id],
+                        usedHint: true,
+                      },
+                    }));
+                  }}
+                  className="sroci-alive-btn glass-btn rounded-xl px-3 py-1 text-xs font-semibold text-[#6b3be0] cursor-pointer"
+                >
+                  {showStageHint ? 'Hide Hint' : 'Hint (-20 No-Hint Bonus)'}
+                </button>
+              </div>
+
+              <p className="text-xs md:text-sm text-slate-800 bg-white/80 border border-white rounded-xl p-3.5">
+                {activeStageDef.promptQuestion}
+              </p>
+
+              {showStageHint && (
+                <div className="sroci-fade-panel rounded-xl bg-purple-50/90 border border-white px-3.5 py-2.5 text-xs text-purple-950">
+                  <strong>Recruiter Tip:</strong> {activeStageDef.hint}
+                </div>
+              )}
+
+              <div className="space-y-2.5">
+                {activeStageDef.options.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handlePlayStageOption(activeStageDef, opt)}
+                    className="sroci-alive-btn w-full text-left rounded-2xl bg-white/85 hover:bg-white border border-white hover:border-[#7e4cf6]/70 p-3.5 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs md:text-sm font-semibold text-slate-900">
+                        {opt.label}
+                      </span>
+                      <span className="shrink-0 rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-[11px] font-bold text-[#6b3be0]">
+                        {opt.isOptimal ? `Up to +${activeStageDef.baseXp + 70} XP` : '+15 XP'}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 mt-1">{opt.detail}</div>
+                  </button>
+                ))}
+              </div>
+
+              {lastXpAward && (
+                <div
+                  className={`sroci-fade-panel rounded-2xl border p-3.5 space-y-1.5 ${
+                    lastXpAward.isOptimal
+                      ? 'bg-emerald-50/90 border-emerald-400/80 text-emerald-950'
+                      : 'bg-amber-50/90 border-amber-400/80 text-amber-950'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-bold">
+                      {lastXpAward.isOptimal ? 'XP Boosted!' : 'Practice Logged'} (+{lastXpAward.total} XP)
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {lastXpAward.breakdown.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-bold text-[#6b3be0]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs">{lastXpAward.feedback}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Sub-View Panel: Live Shared Client Tracker & Follow-Up Sandbox */}
+            <div className="sroci-light-edge lg:col-span-5 rounded-2xl bg-white/60 p-4 md:p-5 space-y-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-[#6b3be0]">
+                    Shared Client Tracker &amp; Follow-Up
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Test Status Updates (Passed / Failed / Hired)
+                  </h3>
+                </div>
+                <span className="rounded-full bg-white/85 border border-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                  Live Sandbox
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {(['Endorsed', 'Walk-In Scheduled', 'Passed', 'Failed', 'Hired'] as const).map(
+                  (statusOpt) => (
+                    <button
+                      key={statusOpt}
+                      type="button"
+                      onClick={() => handleUpdateTrackerOutcome('Candidate #408', statusOpt)}
+                      className="sroci-alive-btn glass-btn rounded-xl px-2.5 py-1 text-[11px] font-semibold text-slate-800 cursor-pointer"
+                    >
+                      Mark {statusOpt}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-0.5">
+                {trackerLog.map((row, index) => (
+                  <div
+                    key={`${row.candidate}-${row.status}-${index}`}
+                    className="sroci-fade-panel rounded-xl bg-white/85 border border-white px-3 py-2 flex items-center justify-between gap-2 text-xs"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-semibold text-slate-900 truncate">
+                        {row.candidate} • <span className="font-normal text-slate-600">{row.stage}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500">{row.updatedBy}</div>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                        row.status === 'Hired'
+                          ? 'bg-emerald-500/20 text-emerald-900'
+                          : row.status === 'Passed'
+                          ? 'bg-sky-500/20 text-sky-900'
+                          : row.status === 'Failed'
+                          ? 'bg-rose-500/20 text-rose-900'
+                          : 'bg-[#7e4cf6]/15 text-[#6b3be0]'
+                      }`}
+                    >
+                      {row.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Full 6-Stage Gamified Quest Component (Kept Intact) */}
+          {showInteractiveSim && (
+            <div className="pt-1">
+              <SrociRecruitmentSimBox
+                lob={mode}
+                onCompleteSession={(summary) => {
+                  setDynamicXp((prev) => prev + summary.xpEarned);
+                  if (!practicedIds.includes(activeScenario.id)) {
+                    setPracticedIds((prev) => [...prev, activeScenario.id]);
+                  }
+                }}
+              />
+            </div>
+          )}
+        </div>
       )}
 
       {/* Frosted Channel & Topic Filter Bar */}
@@ -409,7 +1125,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                 key={channel}
                 type="button"
                 onClick={() => setMode(channel)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+                className={`sroci-alive-btn rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                   active
                     ? 'bg-[#7e4cf6] text-white border border-white/40 ring-2 ring-[#7e4cf6]/30 shadow-sm'
                     : 'glass-btn text-slate-800'
@@ -429,7 +1145,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                 key={item}
                 type="button"
                 onClick={() => setTopic(item)}
-                className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+                className={`sroci-alive-btn rounded-xl px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                   active
                     ? 'bg-[#0e0a24] text-white border border-white/30 shadow-sm'
                     : 'glass-btn text-slate-700'
@@ -459,7 +1175,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                   key={item.id}
                   type="button"
                   onClick={() => setSelectedId(item.id)}
-                  className={`w-full text-left rounded-[18px] border p-4 backdrop-blur-[26px] transition-all duration-150 active:scale-[0.98] cursor-pointer ${
+                  className={`sroci-alive-btn w-full text-left rounded-[18px] border p-4 backdrop-blur-[26px] transition-all duration-150 active:scale-[0.98] cursor-pointer ${
                     selected
                       ? 'bg-white/55 border-[#7e4cf6]/75 ring-2 ring-[#7e4cf6]/30 shadow-[0_14px_38px_rgba(126,76,246,0.16)]'
                       : 'bg-white/25 border-white/85 hover:bg-white/45 hover:border-[#7e4cf6]/50 hover:-translate-y-0.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)]'
@@ -504,7 +1220,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
             <button
               type="button"
               onClick={() => togglePracticed(activeScenario.id)}
-              className={`rounded-xl px-4 py-2 text-xs font-semibold border transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 cursor-pointer ${
+              className={`sroci-alive-btn rounded-xl px-4 py-2 text-xs font-semibold border transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 cursor-pointer ${
                 isPracticed
                   ? 'bg-emerald-600 text-white border-white/35 active:ring-emerald-400/40'
                   : 'bg-[#7e4cf6] text-white border-white/35 active:ring-[#7e4cf6]/40'
