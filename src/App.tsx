@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { SIDEBAR_TABS, UserRole } from './config/sidebarTabs';
+import { getAccountDashboardPreset } from './data/accountPresets';
 import { AgentDashboardView } from './components/AgentDashboardView';
 import { SimulationsView } from './components/SimulationsView';
 import { AdminUsersView } from './components/AdminUsersView';
@@ -18,34 +19,6 @@ interface UserProfile {
 }
 
 const MANAGEMENT_ROLES: UserRole[] = ['trainer', 'supervisor', 'manager', 'admin'];
-
-const SAMPLE_SPAVI_AGENT_DATA: AgentDashboardData = {
-  accountName: 'SPAVI',
-  lob: 'Voice',
-  agentName: 'Agent Preview',
-  cohortStage: 'New Hire',
-  kpis: {
-    assignedDrills: 6,
-    completedSimulations: 3,
-    totalAttempts: 4,
-    activeModules: 2,
-    passedScenarios: 2,
-    needsRetake: 1,
-    avgScorePercent: 84,
-    passRatePercent: 67,
-  },
-  proficiencyTrend: [
-    { label: 'Run 1', score: 72, target: 80 },
-    { label: 'Run 2', score: 80, target: 80 },
-    { label: 'Run 3', score: 88, target: 80 },
-    { label: 'Run 4', score: 92, target: 80 },
-  ],
-  scenarioBreakdown: [
-    { scenario: 'Order Status', completed: 2 },
-    { scenario: 'Escalations', completed: 1 },
-    { scenario: 'Billing/Refund', completed: 1 },
-  ],
-};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -152,16 +125,19 @@ export default function App() {
 
   const isManagementRole = MANAGEMENT_ROLES.includes(profile.role);
 
-  const formattedLob =
+  const formattedLob: 'Voice' | 'Chat' | 'Email' =
     profile.assigned_lob === 'chat'
       ? 'Chat'
       : profile.assigned_lob === 'email'
       ? 'Email'
       : 'Voice';
 
+  const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
+  const basePreset = getAccountDashboardPreset(accountKey);
+
   const dashboardData: AgentDashboardData = {
-    ...SAMPLE_SPAVI_AGENT_DATA,
-    accountName: profile.assigned_account || 'SPAVI',
+    ...basePreset,
+    accountName: accountKey,
     lob: formattedLob,
     agentName: profile.full_name || profile.email,
     cohortStage:
