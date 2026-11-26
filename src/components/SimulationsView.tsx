@@ -1,12 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChatPracticeBox } from './ChatPracticeBox';
+import { SrociRecruitmentSimBox } from './SrociRecruitmentSimBox';
 import { CHAT_SIMULATION_PROMPTS } from '../data/chatSimulationPrompts';
 
 type ChannelMode = 'Voice' | 'Chat' | 'Email';
-type TopicFilter = 'All' | 'Order Status' | 'Billing / Refund' | 'Escalations';
+type TopicFilter =
+  | 'All'
+  | 'Order Status'
+  | 'Billing / Refund'
+  | 'Escalations'
+  | 'Ramp & Sourcing'
+  | 'Screening & Validation'
+  | 'Walk-In & Tracker';
 
 interface ScenarioItem {
   id: string;
+  accountScope: 'SPAVI' | 'SROCI';
   channel: ChannelMode;
   topic: Exclude<TopicFilter, 'All'>;
   title: string;
@@ -23,8 +32,10 @@ interface SimulationsViewProps {
 }
 
 const SCENARIOS: ScenarioItem[] = [
+  // SPAVI Customer Support Scenarios
   {
     id: 'voice-order-status',
+    accountScope: 'SPAVI',
     channel: 'Voice',
     topic: 'Order Status',
     title: 'Order Status & Delivery Update',
@@ -45,6 +56,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
   {
     id: 'voice-billing-refund',
+    accountScope: 'SPAVI',
     channel: 'Voice',
     topic: 'Billing / Refund',
     title: 'Billing & Refund Clarification',
@@ -64,6 +76,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
   {
     id: 'voice-escalations',
+    accountScope: 'SPAVI',
     channel: 'Voice',
     topic: 'Escalations',
     title: 'Frustrated Caller De-Escalation',
@@ -83,6 +96,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
   {
     id: 'chat-order-status',
+    accountScope: 'SPAVI',
     channel: 'Chat',
     topic: 'Order Status',
     title: 'Delayed Order Check-In',
@@ -102,6 +116,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
   {
     id: 'chat-billing-refund',
+    accountScope: 'SPAVI',
     channel: 'Chat',
     topic: 'Billing / Refund',
     title: 'Card Payment & Refund Timeline',
@@ -121,6 +136,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
   {
     id: 'chat-escalations',
+    accountScope: 'SPAVI',
     channel: 'Chat',
     topic: 'Escalations',
     title: 'Promo vs. Group Meal & BOGO Options',
@@ -140,6 +156,7 @@ const SCENARIOS: ScenarioItem[] = [
   },
   {
     id: 'email-order-status',
+    accountScope: 'SPAVI',
     channel: 'Email',
     topic: 'Order Status',
     title: 'Written Order Status Follow-Up',
@@ -157,24 +174,155 @@ const SCENARIOS: ScenarioItem[] = [
       'Avoid jargon or unconfirmed promises.',
     ],
   },
+
+  // SROCI Recruitment Scenarios (Ramp -> Job Post -> Prescreen -> Validate -> Walk-In -> Tracker -> Follow-Up)
+  {
+    id: 'sroci-voice-prescreen-walkin',
+    accountScope: 'SROCI',
+    channel: 'Voice',
+    topic: 'Screening & Validation',
+    title: 'Prescreening Call & Walk-In Qualification',
+    summary: 'Screen a candidate on voice against the client ramp and invite qualified applicants for walk-in.',
+    estimatedMinutes: 7,
+    situation:
+      'You are calling an applicant for an SROCI ramp role. Confirm shift willingness, site walk-in availability, and basic qualifications before inviting them to the site.',
+    responseFlow: [
+      'Introduce yourself, the SROCI recruitment team, and the role being hired for.',
+      'Check client ramp non-negotiables (shift schedule, work setup/site location, key qualifications).',
+      'Validate candidate profile details and notice period/start readiness.',
+      'Invite qualified candidates to the walk-in hub with clear expectations or politely close if unmatched.',
+    ],
+    reminders: [
+      'Confirm walk-in willingness before locking in a site slot.',
+      'Keep candidate expectations accurate to the client ramp.',
+    ],
+  },
+  {
+    id: 'sroci-voice-status-followup',
+    accountScope: 'SROCI',
+    channel: 'Voice',
+    topic: 'Walk-In & Tracker',
+    title: 'Client Outcome Call: Passed, Failed, or Hired',
+    summary: 'Follow up with candidates and align tracker status after client evaluation.',
+    estimatedMinutes: 6,
+    situation:
+      'The client updated the shared tracker with candidate outcomes (Passed, Failed, or Hired). Conduct a clear voice follow-up and confirm tracker accuracy.',
+    responseFlow: [
+      'Verify the exact outcome posted by the client in the shared tracker.',
+      'Deliver clear, respectful feedback—congratulate Hired/Passed candidates or close out Failed ones courteously.',
+      'Align onboarding/start instructions or re-sourcing next steps.',
+      'Double-check that the shared tracker reflects the latest status.',
+    ],
+    reminders: [
+      'Never leave Hired or Failed statuses stale in the shared tracker.',
+      'Maintain a supportive, professional tone across all outcomes.',
+    ],
+  },
+  {
+    id: 'sroci-chat-ramp-prescreen',
+    accountScope: 'SROCI',
+    channel: 'Chat',
+    topic: 'Ramp & Sourcing',
+    title: 'Ramp Check, Job Post & Chat Prescreening',
+    summary: 'Verify client ramp details for job posting and run fast chat prescreening.',
+    estimatedMinutes: 6,
+    situation:
+      'A client ramp brief has updated headcount and shift details. Confirm job post alignment and prescreen an inbound applicant on live chat.',
+    responseFlow: [
+      'Check ramp requirements (role, shift, site/walk-in details) before posting or screening.',
+      'Ask concise chat prescreening questions to validate fit and availability.',
+      'Confirm profile accuracy and move qualified candidates toward walk-in invite.',
+    ],
+    reminders: [
+      'Keep chat prescreen questions short, direct, and easy to answer.',
+      'Spot mismatches early so walk-in slots stay high-quality.',
+    ],
+  },
+  {
+    id: 'sroci-chat-walkin-tracker',
+    accountScope: 'SROCI',
+    channel: 'Chat',
+    topic: 'Walk-In & Tracker',
+    title: 'Walk-In Invite & Shared Tracker Logging',
+    summary: 'Coordinate a site walk-in on chat and log accurate endorsement details in the client tracker.',
+    estimatedMinutes: 6,
+    situation:
+      'A candidate passed profile validation. Invite them to walk in on chat and endorse their profile accurately into the shared client tracker.',
+    responseFlow: [
+      'Share walk-in schedule, site location, and required items clearly on chat.',
+      'Ask for confirmation so show-up rates stay predictable.',
+      'Log complete, error-free endorsement details in the shared client tracker.',
+    ],
+    reminders: [
+      'Verify candidate name, contact info, and endorsement status in the tracker.',
+      'Keep walk-in instructions clear and complete.',
+    ],
+  },
+  {
+    id: 'sroci-email-walkin-followup',
+    accountScope: 'SROCI',
+    channel: 'Email',
+    topic: 'Walk-In & Tracker',
+    title: 'Walk-In Invite, Endorsement & Status Follow-Up Email',
+    summary: 'Send clear written walk-in invites, client endorsement notes, and status updates.',
+    estimatedMinutes: 7,
+    situation:
+      'You need to send a written walk-in invitation to a validated candidate and follow up on tracker status (Passed, Failed, or Hired) with clear next steps.',
+    responseFlow: [
+      'State the purpose, role/ramp details, and key dates/times clearly at the top.',
+      'Include exact walk-in instructions or status follow-up details (Passed, Failed, or Hired).',
+      'Confirm tracker tracking and invite replies for scheduling or onboarding.',
+    ],
+    reminders: [
+      'Use clear headings or bullet points for schedules and requirements.',
+      'Ensure written updates match the shared client tracker.',
+    ],
+  },
 ];
 
-const TOPICS: TopicFilter[] = ['All', 'Order Status', 'Billing / Refund', 'Escalations'];
-
 export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
+  const normalizedAccount = (accountName || 'SPAVI').trim().toUpperCase();
+  const isSroci = normalizedAccount === 'SROCI';
+
   const initialMode: ChannelMode =
     lob === 'Chat' || lob === 'Email' || lob === 'Voice' ? lob : 'Voice';
 
+  const availableTopics: TopicFilter[] = useMemo(
+    () =>
+      isSroci
+        ? ['All', 'Ramp & Sourcing', 'Screening & Validation', 'Walk-In & Tracker']
+        : ['All', 'Order Status', 'Billing / Refund', 'Escalations'],
+    [isSroci]
+  );
+
+  const accountScenarios = useMemo(
+    () => SCENARIOS.filter((s) => s.accountScope === (isSroci ? 'SROCI' : 'SPAVI')),
+    [isSroci]
+  );
+
   const [mode, setMode] = useState<ChannelMode>(initialMode);
   const [topic, setTopic] = useState<TopicFilter>('All');
-  const [selectedId, setSelectedId] = useState<string>('voice-order-status');
+  const [selectedId, setSelectedId] = useState<string>(accountScenarios[0]?.id ?? '');
   const [practicedIds, setPracticedIds] = useState<string[]>([]);
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [selectedChatPromptId, setSelectedChatPromptId] = useState<string>(
     CHAT_SIMULATION_PROMPTS[0].id
   );
+  const [showInteractiveSim, setShowInteractiveSim] = useState<boolean>(isSroci);
 
-  const filteredScenarios = SCENARIOS.filter((item) => {
+  useEffect(() => {
+    setMode(initialMode);
+    setTopic('All');
+    setShowInteractiveSim(isSroci);
+    const firstForAccount = SCENARIOS.find(
+      (s) => s.accountScope === (isSroci ? 'SROCI' : 'SPAVI')
+    );
+    if (firstForAccount) {
+      setSelectedId(firstForAccount.id);
+    }
+  }, [isSroci, initialMode]);
+
+  const filteredScenarios = accountScenarios.filter((item) => {
     const matchesChannel = item.channel === mode;
     const matchesTopic = topic === 'All' || item.topic === topic;
     return matchesChannel && matchesTopic;
@@ -192,6 +340,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
   const activeScenario =
     filteredScenarios.find((s) => s.id === selectedId) ??
     filteredScenarios[0] ??
+    accountScenarios[0] ??
     SCENARIOS[0];
 
   const activeChatPrompt =
@@ -210,16 +359,44 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
     <div className="space-y-5">
       <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Simulations</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {isSroci ? 'SROCI Recruitment Simulations' : 'Simulations'}
+          </h1>
           <p className="text-sm text-slate-600">
-            {accountName || 'SPAVI'} • Voice, Chat, or Email practice • Self-paced proficiency (no grading)
+            {normalizedAccount} •{' '}
+            {isSroci
+              ? 'Ramp Check, Job Posting, Prescreening, Validation, Walk-In & Client Tracker across Voice, Chat, and Email'
+              : 'Voice, Chat, or Email practice • Self-paced proficiency (no grading)'}
           </p>
         </div>
 
-        <div className="glass-card px-4 py-1.5 text-xs font-semibold text-purple-950">
-          Practiced this session: {practicedIds.length} / {SCENARIOS.length}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {isSroci && (
+            <button
+              type="button"
+              onClick={() => setShowInteractiveSim((prev) => !prev)}
+              className="rounded-xl bg-[#7e4cf6] px-3.5 py-1.5 text-xs font-semibold text-white border border-white/30 hover:bg-[#6b3be0] transition cursor-pointer"
+            >
+              {showInteractiveSim ? 'Hide Pipeline Quest' : 'Launch Pipeline Quest'}
+            </button>
+          )}
+          <div className="glass-card px-4 py-1.5 text-xs font-semibold text-purple-950">
+            Practiced this session: {practicedIds.length} / {accountScenarios.length}
+          </div>
         </div>
       </div>
+
+      {/* Gamified End-to-End SROCI Pipeline Quest */}
+      {isSroci && showInteractiveSim && (
+        <SrociRecruitmentSimBox
+          lob={mode}
+          onCompleteSession={() => {
+            if (!practicedIds.includes(activeScenario.id)) {
+              setPracticedIds((prev) => [...prev, activeScenario.id]);
+            }
+          }}
+        />
+      )}
 
       {/* Frosted Channel & Topic Filter Bar */}
       <div className="glass-card flex flex-wrap items-center justify-between gap-4 p-4">
@@ -245,7 +422,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          {TOPICS.map((item) => {
+          {availableTopics.map((item) => {
             const active = topic === item;
             return (
               <button
@@ -344,7 +521,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
             <p className="text-sm text-slate-700">{activeScenario.situation}</p>
           </div>
 
-          {mode === 'Chat' && (
+          {!isSroci && mode === 'Chat' && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-semibold text-slate-700">
@@ -371,7 +548,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
 
               <ChatPracticeBox
                 prompt={activeChatPrompt}
-                accountName={accountName || 'SPAVI'}
+                accountName={normalizedAccount}
               />
             </div>
           )}
@@ -420,7 +597,11 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
                   [activeScenario.id]: e.target.value,
                 }))
               }
-              placeholder="Draft a sample response or note phrasing you want to remember..."
+              placeholder={
+                isSroci
+                  ? 'Draft prescreen questions, walk-in invite details, or tracker follow-up notes...'
+                  : 'Draft a sample response or note phrasing you want to remember...'
+              }
               className="glass-card w-full p-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#7e4cf6] focus:bg-white/65 focus:outline-none transition"
             />
           </div>
