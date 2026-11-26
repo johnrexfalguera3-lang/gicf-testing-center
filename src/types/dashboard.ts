@@ -1,4 +1,4 @@
-export type TabId = 'dashboard' | 'simulations';
+export type TabId = 'dashboard' | 'simulations' | 'admin_users';
 
 export interface SidebarTab {
   id: TabId;
@@ -8,7 +8,7 @@ export interface SidebarTab {
 
 export interface AgentDashboardData {
   accountName: string;
-  lob: 'Voice';
+  lob: 'Voice' | 'Chat' | 'Email';
   agentName: string;
   cohortStage: 'New Hire' | 'Deployed to Production';
   kpis: {
