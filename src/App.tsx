@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { SIDEBAR_TABS, UserRole } from './config/sidebarTabs';
-import { getAccountDashboardPreset } from './data/accountPresets';
+import {
+  getAccountDashboardPreset,
+  getAccountDirectoryEntry,
+} from './data/accountPresets';
 import { AgentDashboardView } from './components/AgentDashboardView';
 import { SimulationsView } from './components/SimulationsView';
 import { AdminUsersView } from './components/AdminUsersView';
@@ -99,11 +102,12 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const accountKey = (profile?.assigned_account || 'SPAVI')
-    .trim()
-    .toUpperCase();
+  const directoryEntry = getAccountDirectoryEntry(
+    profile?.assigned_account || 'SPAVI'
+  );
+  const accountCode = directoryEntry.code;
   const telemetryStorageKey = profile
-    ? `sroci_sim_telemetry_${profile.id}_${accountKey}`
+    ? `sroci_sim_telemetry_${profile.id}_${accountCode}`
     : null;
 
   useEffect(() => {
@@ -173,21 +177,15 @@ export default function App() {
       ? 'Email'
       : 'Voice';
 
-  const isSroci = accountKey === 'SROCI' && !isAdmin;
+  const isSroci = directoryEntry.isRecruitment && !isAdmin;
   const canAccessSrociAcademy = isSroci;
-  const basePreset = getAccountDashboardPreset(accountKey);
+  const basePreset = getAccountDashboardPreset(accountCode);
 
   const sidebarSubtitle = isAdmin
     ? 'Admin'
-    : isSroci
-    ? 'SROCI • Recruitment'
-    : `${dashboardAccountNameOrKey(accountKey)} • ${formattedLob}`;
+    : `${directoryEntry.accountName} • ${directoryEntry.lobLabel}`;
 
-  const modeBadgeLabel = isAdmin
-    ? 'Admin Mode'
-    : isSroci
-    ? 'Recruitment'
-    : `${formattedLob} Mode`;
+  const modeBadgeLabel = isAdmin ? 'Admin Mode' : directoryEntry.lobLabel;
 
   const hasLiveSrociTelemetry =
     isSroci &&
@@ -279,7 +277,7 @@ export default function App() {
 
   const dashboardData: AgentDashboardData = {
     ...basePreset,
-    accountName: accountKey,
+    accountName: directoryEntry.accountName,
     lob: formattedLob,
     agentName: profile.full_name || profile.email,
     cohortStage:
@@ -386,7 +384,7 @@ export default function App() {
             <div className="truncate font-semibold text-slate-900">
               {isAdmin
                 ? `Admin • ${profile.email}`
-                : `${dashboardData.accountName} • ${profile.email}`}
+                : `${directoryEntry.accountName} • ${profile.email}`}
             </div>
             <button
               type="button"
@@ -407,7 +405,7 @@ export default function App() {
                 <span className="ml-2 text-xs font-normal text-slate-600">
                   {isAdmin
                     ? '(Admin)'
-                    : `(${dashboardData.accountName} • ${dashboardData.cohortStage} • ${profile.role})`}
+                    : `(${directoryEntry.accountName} • ${dashboardData.cohortStage} • ${profile.role})`}
                 </span>
               </div>
 
@@ -441,7 +439,7 @@ export default function App() {
             {safeActiveTab === 'simulations' && (
               <div key="tab-simulations" className="tab-panel-animate">
                 <SimulationsView
-                  accountName={dashboardData.accountName}
+                  accountName={accountCode}
                   lob={formattedLob}
                   onTelemetryChange={handleSrociTelemetryChange}
                 />
@@ -491,7 +489,7 @@ export default function App() {
             <div className="glass-card flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[11px] font-medium text-slate-700">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-white/75 border border-white px-2.5 py-0.5 text-slate-900">
-                  {isAdmin ? 'Admin' : dashboardData.accountName}
+                  {isAdmin ? 'Admin' : directoryEntry.accountName}
                 </span>
                 <span className="rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-purple-950">
                   {modeBadgeLabel}
@@ -513,8 +511,4 @@ export default function App() {
       </div>
     </div>
   );
-}
-
-function dashboardAccountNameOrKey(accountKey: string): string {
-  return accountKey || 'SPAVI';
 }
