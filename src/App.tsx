@@ -116,7 +116,7 @@ export default function App() {
           </div>
         )}
         <SplashAuthGate
-          accountHint={urlAccount ?? 'SPAVI'}
+          accountHint={urlAccount}
           onAuthenticated={loadSessionAndProfile}
         />
       </div>
