@@ -121,8 +121,8 @@ export const AdminUsersView: React.FC = () => {
   });
 
   return (
-    <div className="space-y-5">
-      <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-5 sroci-fade-panel">
+      <div className="glass-card sroci-liquid-elevated p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Admin User Management</h1>
           <p className="text-sm text-slate-600">
@@ -132,24 +132,24 @@ export const AdminUsersView: React.FC = () => {
         <button
           type="button"
           onClick={fetchUsers}
-          className="glass-btn px-4 py-2 text-sm font-medium cursor-pointer"
+          className="glass-btn sroci-alive-btn rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
         >
           Refresh List
         </button>
       </div>
 
-      <div className="glass-card p-4 flex flex-wrap gap-3">
+      <div className="glass-card sroci-light-edge p-4 flex flex-wrap gap-3">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, email, or account..."
-          className="rounded-lg border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-900"
+          className="sroci-glass-input w-full sm:w-64 px-3.5 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-500"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-900"
+          className="sroci-glass-select px-3.5 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
         >
           <option value="all">All Roles</option>
           {ROLES.map((r) => (
@@ -161,54 +161,63 @@ export const AdminUsersView: React.FC = () => {
       </div>
 
       {statusMessage && (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+        <div className="rounded-xl border border-emerald-300/80 bg-emerald-50/85 backdrop-blur-md px-4 py-2.5 text-xs font-medium text-emerald-800">
           {statusMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm text-rose-800">
+        <div className="rounded-xl border border-rose-300/80 bg-rose-50/85 backdrop-blur-md px-4 py-2.5 text-xs font-medium text-rose-800">
           {errorMessage}
         </div>
       )}
 
-      <div className="glass-card overflow-x-auto p-4">
+      <div className="glass-card sroci-liquid-elevated overflow-x-auto p-4">
         {loading ? (
           <p className="text-sm text-slate-600">Loading users...</p>
         ) : filteredUsers.length === 0 ? (
           <p className="text-sm text-slate-600">No matching users found.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-600">
-                <th className="py-2 pr-3">Email</th>
-                <th className="py-2 pr-3">Name</th>
-                <th className="py-2 pr-3">Role</th>
-                <th className="py-2 pr-3">Account</th>
-                <th className="py-2 pr-3">LOB</th>
-                <th className="py-2 pr-3">Cohort</th>
-                <th className="py-2">Action</th>
+              <tr className="border-b border-white/70 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                <th className="py-2.5 pr-3">Email</th>
+                <th className="py-2.5 pr-3">Name</th>
+                <th className="py-2.5 pr-3">Role</th>
+                <th className="py-2.5 pr-3">Account</th>
+                <th className="py-2.5 pr-3">LOB</th>
+                <th className="py-2.5 pr-3">Cohort</th>
+                <th className="py-2.5">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((u) => {
                 const isStaff = isStaffRoleValue(u.role);
                 return (
-                  <tr key={u.id} className="border-b border-slate-100">
-                    <td className="py-2 pr-3 font-medium text-slate-900">{u.email}</td>
-                    <td className="py-2 pr-3">
+                  <tr
+                    key={u.id}
+                    className="border-b border-white/50 last:border-b-0 transition-colors hover:bg-white/25"
+                  >
+                    <td className="py-2.5 pr-3 font-semibold text-slate-900">
+                      {u.email}
+                    </td>
+                    <td className="py-2.5 pr-3">
                       <input
                         type="text"
                         value={u.full_name ?? ''}
-                        onChange={(e) => handleFieldChange(u.id, 'full_name', e.target.value)}
-                        className="w-36 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                        onChange={(e) =>
+                          handleFieldChange(u.id, 'full_name', e.target.value)
+                        }
+                        className="sroci-glass-input w-36 px-2.5 py-1.5 text-xs font-medium text-slate-900"
                       />
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="py-2.5 pr-3">
                       <select
                         value={u.role}
-                        onChange={(e) => handleFieldChange(u.id, 'role', e.target.value)}
-                        className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                        onChange={(e) =>
+                          handleFieldChange(u.id, 'role', e.target.value)
+                        }
+                        className="sroci-glass-select px-2.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
                       >
                         {ROLES.map((r) => (
                           <option key={r} value={r}>
@@ -217,23 +226,23 @@ export const AdminUsersView: React.FC = () => {
                         ))}
                       </select>
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="py-2.5 pr-3">
                       <input
                         type="text"
                         value={u.assigned_account}
                         onChange={(e) =>
                           handleFieldChange(u.id, 'assigned_account', e.target.value)
                         }
-                        className="w-28 rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                        className="sroci-glass-input w-28 px-2.5 py-1.5 text-xs font-medium text-slate-900"
                       />
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="py-2.5 pr-3">
                       <select
                         value={u.assigned_lob}
                         onChange={(e) =>
                           handleFieldChange(u.id, 'assigned_lob', e.target.value)
                         }
-                        className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                        className="sroci-glass-select px-2.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
                       >
                         {LOBS.map((lob) => (
                           <option key={lob} value={lob}>
@@ -242,9 +251,9 @@ export const AdminUsersView: React.FC = () => {
                         ))}
                       </select>
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="py-2.5 pr-3">
                       {isStaff ? (
-                        <span className="text-xs font-medium text-slate-500">
+                        <span className="inline-flex items-center rounded-full bg-white/65 border border-white/85 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
                           Regular Employee
                         </span>
                       ) : (
@@ -253,7 +262,7 @@ export const AdminUsersView: React.FC = () => {
                           onChange={(e) =>
                             handleFieldChange(u.id, 'cohort_stage', e.target.value)
                           }
-                          className="rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
+                          className="sroci-glass-select px-2.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
                         >
                           {COHORTS.map((c) => (
                             <option key={c} value={c}>
@@ -263,12 +272,12 @@ export const AdminUsersView: React.FC = () => {
                         </select>
                       )}
                     </td>
-                    <td className="py-2">
+                    <td className="py-2.5">
                       <button
                         type="button"
                         disabled={savingId === u.id}
                         onClick={() => handleSaveUser(u)}
-                        className="glass-btn px-3 py-1 text-xs font-semibold cursor-pointer"
+                        className="glass-btn sroci-alive-btn rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
                       >
                         {savingId === u.id ? 'Saving...' : 'Save'}
                       </button>
