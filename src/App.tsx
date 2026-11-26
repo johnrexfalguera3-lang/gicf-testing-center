@@ -134,6 +134,7 @@ export default function App() {
       : 'Voice';
 
   const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
+  const isSroci = accountKey === 'SROCI' && !isAdmin;
   const basePreset = getAccountDashboardPreset(accountKey);
 
   const sidebarSubtitle = isAdmin
@@ -169,11 +170,23 @@ export default function App() {
     ? activeTab
     : 'dashboard';
 
+  const navMotionClass = isSroci ? 'sroci-alive-btn' : '';
+
   return (
-    <div className="glass-canvas min-h-screen text-slate-800 p-3 md:p-6">
-      <div className="mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/80 bg-white/30 backdrop-blur-2xl shadow-[0_24px_60px_rgba(15,23,42,0.14)] flex flex-col md:flex-row overflow-hidden">
+    <div
+      className={`glass-canvas ${
+        isSroci ? 'sroci-liquid-shell sroci-liquid-theme' : ''
+      } min-h-screen text-slate-800 p-3 md:p-6`}
+    >
+      <div
+        className={`mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row overflow-hidden ${
+          isSroci
+            ? 'shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]'
+            : 'shadow-[0_24px_60px_rgba(15,23,42,0.14)]'
+        }`}
+      >
         {/* Glass Left Sidebar */}
-        <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/75 flex flex-col justify-between p-4 shrink-0">
+        <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0">
           <div>
             <div className="glass-card flex items-center gap-3 px-3.5 py-2.5 mb-5">
               <img
@@ -199,7 +212,7 @@ export default function App() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ease-out active:scale-[0.98] cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ease-out active:scale-[0.98] cursor-pointer ${navMotionClass} ${
                       isActive
                         ? 'bg-white/85 text-slate-900 border border-[#7e4cf6]/70 ring-2 ring-[#7e4cf6]/25 shadow-[0_6px_18px_rgba(126,76,246,0.16)]'
                         : 'text-slate-700 border border-transparent hover:bg-white/55 hover:border-white/85 hover:text-slate-900 hover:translate-x-0.5'
@@ -226,7 +239,7 @@ export default function App() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="glass-btn w-full rounded-lg py-1.5 text-center text-xs font-semibold text-[#6b3be0] cursor-pointer"
+              className={`glass-btn w-full rounded-lg py-1.5 text-center text-xs font-semibold text-[#6b3be0] cursor-pointer ${navMotionClass}`}
             >
               Sign Out
             </button>
@@ -253,7 +266,7 @@ export default function App() {
                     safeActiveTab === 'dashboard' ? 'simulations' : 'dashboard'
                   )
                 }
-                className="glass-btn rounded-xl px-3.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer"
+                className={`glass-btn rounded-xl px-3.5 py-1.5 text-xs font-semibold text-slate-800 cursor-pointer ${navMotionClass}`}
               >
                 {safeActiveTab === 'dashboard'
                   ? 'Go to Simulations'
@@ -305,7 +318,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('simulations')}
-                className="rounded-xl bg-[#7e4cf6] px-3.5 py-1 text-xs font-semibold text-white border border-white/30 transition-all duration-200 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer"
+                className={`rounded-xl bg-[#7e4cf6] px-3.5 py-1 text-xs font-semibold text-white border border-white/30 transition-all duration-200 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer ${navMotionClass}`}
               >
                 Open Practice →
               </button>

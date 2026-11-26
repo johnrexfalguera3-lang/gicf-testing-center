@@ -16,8 +16,9 @@ export function AgentDashboardView({
 }: AgentDashboardViewProps) {
   const { kpis, proficiencyTrend, scenarioBreakdown } = data;
 
-  const isSroci = data.accountName?.trim().toUpperCase() === 'SROCI';
-  const displayTrackLabel = isSroci ? 'RECRUITMENT' : data.lob;
+  const isSroci = data.accountName?.trim().toUpperCase() === 'SROCI' && !isAdmin;
+  const displayTrackLabel =
+    data.accountName?.trim().toUpperCase() === 'SROCI' ? 'RECRUITMENT' : data.lob;
 
   const [hoveredPreview, setHoveredPreview] = useState<
     'trend' | 'scenarios' | null
@@ -31,7 +32,6 @@ export function AgentDashboardView({
     }
   };
 
-  // Slight hover delay so content fades in intentionally instead of snapping on instant brush-by
   const handleHoverStart = (panel: 'trend' | 'scenarios') => {
     if (!isSroci) return;
     clearHoverTimer();
@@ -56,11 +56,15 @@ export function AgentDashboardView({
 
   const btnMotion = isSroci ? 'sroci-alive-btn' : '';
   const panelFade = isSroci ? 'sroci-fade-panel' : '';
+  const elevatedCard = isSroci ? 'sroci-liquid-elevated' : '';
+  const lightEdgeCard = isSroci ? 'sroci-light-edge' : '';
 
   return (
     <div className={`space-y-5 ${panelFade}`}>
       {/* Header Card */}
-      <div className="glass-card p-5 flex flex-wrap items-center justify-between gap-4">
+      <div
+        className={`glass-card ${elevatedCard} p-5 flex flex-wrap items-center justify-between gap-4`}
+      >
         <div>
           {isAdmin ? (
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#7e4cf6]">
@@ -74,7 +78,7 @@ export function AgentDashboardView({
               <span>•</span>
               <span>{displayTrackLabel}</span>
               <span>•</span>
-              <span className="rounded-full bg-white/75 border border-white/85 px-2.5 py-0.5 text-slate-800">
+              <span className="rounded-full bg-white/80 border border-white px-2.5 py-0.5 text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
                 {data.cohortStage}
               </span>
             </div>
@@ -92,7 +96,7 @@ export function AgentDashboardView({
         <button
           type="button"
           onClick={() => onQuickAction('open_simulation')}
-          className={`rounded-xl bg-[#7e4cf6] px-4 py-2.5 text-xs font-semibold text-white border border-white/30 shadow-md shadow-[#7e4cf6]/25 transition-all duration-150 hover:bg-[#6b3be0] hover:border-white/70 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7e4cf6]/35 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer ${btnMotion}`}
+          className={`rounded-xl bg-[#7e4cf6] px-4 py-2.5 text-xs font-semibold text-white border border-white/45 shadow-md shadow-[#7e4cf6]/25 transition-all duration-150 hover:bg-[#6b3be0] hover:border-white/80 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7e4cf6]/35 active:scale-[0.97] active:ring-2 active:ring-[#7e4cf6]/40 cursor-pointer ${btnMotion}`}
         >
           Launch Simulation →
         </button>
@@ -100,7 +104,7 @@ export function AgentDashboardView({
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5">
+        <div className={`glass-card ${lightEdgeCard} p-5`}>
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             Completed Simulations
           </div>
@@ -117,7 +121,7 @@ export function AgentDashboardView({
           </div>
         </div>
 
-        <div className="glass-card p-5">
+        <div className={`glass-card ${lightEdgeCard} p-5`}>
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             Average Proficiency
           </div>
@@ -125,7 +129,7 @@ export function AgentDashboardView({
             <span className="text-3xl font-bold text-[#7e4cf6]">
               {kpis.avgScorePercent}%
             </span>
-            <span className="text-xs font-semibold text-emerald-800 bg-emerald-500/15 rounded-full px-2 py-0.5">
+            <span className="text-xs font-semibold text-emerald-800 bg-emerald-500/15 border border-white/70 rounded-full px-2 py-0.5">
               Target 80%
             </span>
           </div>
@@ -134,7 +138,7 @@ export function AgentDashboardView({
           </div>
         </div>
 
-        <div className="glass-card p-5">
+        <div className={`glass-card ${lightEdgeCard} p-5`}>
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             Passed Scenarios
           </div>
@@ -149,7 +153,7 @@ export function AgentDashboardView({
           </div>
         </div>
 
-        <div className="glass-card p-5">
+        <div className={`glass-card ${lightEdgeCard} p-5`}>
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             Needs Focus
           </div>
@@ -171,7 +175,7 @@ export function AgentDashboardView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div
           onMouseLeave={handleHoverEnd}
-          className="glass-card lg:col-span-7 p-5 space-y-4"
+          className={`glass-card ${elevatedCard} lg:col-span-7 p-5 space-y-4`}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -192,7 +196,9 @@ export function AgentDashboardView({
             </button>
           </div>
 
-          <div className="glass-card grid grid-cols-4 gap-3 h-44 items-end p-4">
+          <div
+            className={`glass-card ${lightEdgeCard} grid grid-cols-4 gap-3 h-44 items-end p-4`}
+          >
             {proficiencyTrend.map((point) => (
               <div
                 key={point.label}
@@ -201,10 +207,10 @@ export function AgentDashboardView({
                 <span className="text-xs font-bold text-slate-800">
                   {point.score}%
                 </span>
-                <div className="w-full max-w-[40px] h-24 rounded-xl bg-white/50 flex items-end p-0.5 overflow-hidden">
+                <div className="w-full max-w-[40px] h-24 rounded-xl bg-white/60 border border-white/85 flex items-end p-0.5 overflow-hidden shadow-[inset_0_1px_2px_rgba(255,255,255,0.9)]">
                   <div
                     style={{ height: `${Math.min(point.score, 100)}%` }}
-                    className="w-full rounded-lg bg-[#7e4cf6]"
+                    className="w-full rounded-lg bg-gradient-to-t from-[#6b3be0] to-[#9b72ff]"
                   />
                 </div>
                 <span className="text-[11px] font-medium text-slate-700">
@@ -216,7 +222,7 @@ export function AgentDashboardView({
 
           {isSroci && (
             <div
-              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 transition-all duration-300 ease-out ${
+              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
                 hoveredPreview === 'trend'
                   ? 'opacity-100 translate-y-0 max-h-24'
                   : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
@@ -226,7 +232,9 @@ export function AgentDashboardView({
                 SROCI Trend Snapshot:
               </span>{' '}
               Latest run reached{' '}
-              <strong>{proficiencyTrend[proficiencyTrend.length - 1]?.score ?? 90}%</strong>{' '}
+              <strong>
+                {proficiencyTrend[proficiencyTrend.length - 1]?.score ?? 90}%
+              </strong>{' '}
               across prescreening, walk-in invites, and client tracker updates.
             </div>
           )}
@@ -234,7 +242,7 @@ export function AgentDashboardView({
 
         <div
           onMouseLeave={handleHoverEnd}
-          className="glass-card lg:col-span-5 p-5 space-y-4"
+          className={`glass-card ${elevatedCard} lg:col-span-5 p-5 space-y-4`}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -255,7 +263,7 @@ export function AgentDashboardView({
             </button>
           </div>
 
-          <div className="glass-card space-y-3 p-4">
+          <div className={`glass-card ${lightEdgeCard} space-y-3 p-4`}>
             {scenarioBreakdown.map((item) => {
               const widthPercent = Math.round(
                 (item.completed / maxBreakdown) * 100
@@ -270,10 +278,10 @@ export function AgentDashboardView({
                       {item.completed}
                     </span>
                   </div>
-                  <div className="h-2 rounded-full bg-white/60 overflow-hidden">
+                  <div className="h-2 rounded-full bg-white/65 border border-white/80 overflow-hidden">
                     <div
                       style={{ width: `${widthPercent}%` }}
-                      className="h-full rounded-full bg-[#7e4cf6]"
+                      className="h-full rounded-full bg-gradient-to-r from-[#6b3be0] to-[#9b72ff]"
                     />
                   </div>
                 </div>
@@ -283,7 +291,7 @@ export function AgentDashboardView({
 
           {isSroci && (
             <div
-              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 transition-all duration-300 ease-out ${
+              className={`rounded-xl bg-white/75 border border-white px-3.5 py-2.5 text-xs text-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)] transition-all duration-300 ease-out ${
                 hoveredPreview === 'scenarios'
                   ? 'opacity-100 translate-y-0 max-h-24'
                   : 'opacity-0 -translate-y-1 max-h-0 overflow-hidden py-0 border-transparent pointer-events-none'
@@ -292,7 +300,8 @@ export function AgentDashboardView({
               <span className="font-semibold text-[#6b3be0]">
                 SROCI Pipeline Focus:
               </span>{' '}
-              Covers ramp checks, job posts, prescreening, profile validation, walk-in invites, and client tracker follow-ups.
+              Covers ramp checks, job posts, prescreening, profile validation,
+              walk-in invites, and client tracker follow-ups.
             </div>
           )}
         </div>

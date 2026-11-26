@@ -411,7 +411,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
       },
       {
         id: `${currentTurn.id}-coach-${Date.now() + 1}`,
-        sender: choice.isOptimal ? `Pipeline Coach (+${totalGain} XP)` : `Pipeline Coach (+${totalGain} XP)`,
+        sender: `Pipeline Coach (+${totalGain} XP)`,
         text: choice.feedback,
         tone: 'coach',
       },
@@ -468,18 +468,18 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
   };
 
   return (
-    <div className="glass-card p-4 md:p-6 space-y-5 rounded-3xl">
+    <div className="glass-card sroci-liquid-elevated sroci-fade-panel p-4 md:p-6 space-y-5 rounded-3xl">
       {/* Top Gamified HUD */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-300/40 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/65 pb-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[#7e4cf6]/15 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#6b3be0]">
+            <span className="rounded-full bg-[#7e4cf6]/15 border border-white/80 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#6b3be0]">
               SROCI Recruitment Sim
             </span>
-            <span className="rounded-full bg-white/80 border border-white px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+            <span className="rounded-full bg-white/80 border border-white px-2.5 py-0.5 text-[11px] font-semibold text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
               Rank: {rankTitle}
             </span>
-            <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900">
+            <span className="rounded-full bg-emerald-500/15 border border-white/80 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900">
               Tracker: {trackerStatus}
             </span>
           </div>
@@ -493,27 +493,27 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
 
         {/* XP & Streak Counters + Channel Toggle */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="rounded-2xl bg-white/75 border border-white px-3.5 py-2 text-center">
+          <div className="sroci-light-edge rounded-2xl bg-white/70 px-3.5 py-2 text-center">
             <div className="text-[10px] font-semibold uppercase text-slate-500">XP</div>
             <div className="text-sm font-bold text-[#7e4cf6]">{xp}</div>
           </div>
-          <div className="rounded-2xl bg-white/75 border border-white px-3.5 py-2 text-center">
+          <div className="sroci-light-edge rounded-2xl bg-white/70 px-3.5 py-2 text-center">
             <div className="text-[10px] font-semibold uppercase text-slate-500">Streak</div>
             <div className="text-sm font-bold text-amber-700">
               {streak > 0 ? `🔥 ${streak}x` : '0x'}
             </div>
           </div>
 
-          <div className="flex rounded-xl bg-white/60 p-1 border border-white/80">
+          <div className="sroci-light-edge flex rounded-xl bg-white/60 p-1">
             {(['Voice', 'Chat', 'Email'] as RecruitmentChannel[]).map((ch) => (
               <button
                 key={ch}
                 type="button"
                 onClick={() => handleChannelSwitch(ch)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`sroci-alive-btn px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
                   selectedChannel === ch
-                    ? 'bg-[#7e4cf6] text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-white/70'
+                    ? 'bg-[#7e4cf6] text-white border border-white/50 shadow-sm'
+                    : 'text-slate-700 hover:bg-white/75'
                 }`}
               >
                 {ch}
@@ -531,12 +531,12 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
           return (
             <div
               key={step.key}
-              className={`rounded-xl px-3 py-2 text-[11px] font-semibold border transition-all ${
+              className={`sroci-light-edge rounded-xl px-3 py-2 text-[11px] font-semibold transition-all duration-300 ${
                 isCurrent
-                  ? 'bg-white/90 border-[#7e4cf6] text-[#6b3be0] ring-2 ring-[#7e4cf6]/20'
+                  ? 'bg-white/90 border-[#7e4cf6] text-[#6b3be0] ring-2 ring-[#7e4cf6]/25 -translate-y-0.5'
                   : isDone
-                  ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-950'
-                  : 'bg-white/45 border-white/70 text-slate-600'
+                  ? 'bg-emerald-500/15 border-white/85 text-emerald-950'
+                  : 'bg-white/45 border-white/80 text-slate-600'
               }`}
             >
               {isDone ? '✓ ' : ''}
@@ -547,19 +547,22 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
       </div>
 
       {!finished && currentTurn ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div
+          key={currentTurn.id}
+          className="sroci-fade-panel grid grid-cols-1 lg:grid-cols-12 gap-4"
+        >
           {/* Left: Live Chat / Case Feed */}
-          <div className="lg:col-span-5 rounded-2xl bg-white/55 border border-white/85 p-4 flex flex-col justify-between space-y-3">
+          <div className="sroci-light-edge lg:col-span-5 rounded-2xl bg-white/50 p-4 flex flex-col justify-between space-y-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-slate-900">
                   {currentTurn.stageTitle}
                 </span>
-                <span className="rounded-full bg-[#7e4cf6]/15 px-2.5 py-0.5 text-[10px] font-bold uppercase text-[#6b3be0]">
+                <span className="rounded-full bg-[#7e4cf6]/15 border border-white/80 px-2.5 py-0.5 text-[10px] font-bold uppercase text-[#6b3be0]">
                   {selectedChannel} Practice
                 </span>
               </div>
-              <div className="text-[11px] text-slate-700 bg-white/70 rounded-xl p-2.5 border border-white">
+              <div className="text-[11px] text-slate-700 bg-white/75 rounded-xl p-2.5 border border-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)]">
                 <span className="font-semibold text-slate-900">
                   {currentTurn.candidateName}
                 </span>{' '}
@@ -572,12 +575,12 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
               {chatLog.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`rounded-xl p-2.5 text-xs ${
+                  className={`sroci-fade-panel rounded-xl p-2.5 text-xs ${
                     msg.tone === 'action'
-                      ? 'bg-[#7e4cf6] text-white ml-6'
+                      ? 'bg-[#7e4cf6] text-white border border-white/45 ml-6 shadow-md shadow-[#7e4cf6]/20'
                       : msg.tone === 'coach'
-                      ? 'bg-amber-50/95 border border-amber-200 text-slate-800'
-                      : 'bg-white/90 border border-white text-slate-800 mr-4'
+                      ? 'bg-amber-50/90 border border-white text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]'
+                      : 'bg-white/85 border border-white text-slate-800 mr-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]'
                   }`}
                 >
                   <div
@@ -596,7 +599,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
               <button
                 type="button"
                 onClick={() => setShowHint((prev) => !prev)}
-                className="text-xs font-semibold text-[#6b3be0] hover:underline cursor-pointer"
+                className="sroci-alive-btn text-xs font-semibold text-[#6b3be0] hover:underline cursor-pointer"
               >
                 {showHint ? 'Hide Recruiter Tip' : 'Need a Recruiter Tip?'}
               </button>
@@ -606,7 +609,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
             </div>
 
             {showHint && (
-              <ul className="rounded-xl bg-purple-50/90 border border-purple-200 p-2.5 text-[11px] text-purple-950 space-y-1 list-disc pl-4">
+              <ul className="sroci-fade-panel rounded-xl bg-purple-50/90 border border-white p-2.5 text-[11px] text-purple-950 space-y-1 list-disc pl-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
                 {currentTurn.quickHints.map((hint, i) => (
                   <li key={i}>{hint}</li>
                 ))}
@@ -615,7 +618,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
           </div>
 
           {/* Right: Interactive Decision Choices */}
-          <div className="lg:col-span-7 rounded-2xl bg-white/60 border border-white/85 p-4 flex flex-col justify-between space-y-4">
+          <div className="sroci-light-edge lg:col-span-7 rounded-2xl bg-white/55 p-4 flex flex-col justify-between space-y-4">
             <div className="space-y-3">
               <div className="text-xs font-bold uppercase tracking-wide text-slate-600">
                 Choose Your Next Recruiter Action
@@ -627,13 +630,13 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
                   const showResult = Boolean(selectedChoiceId);
 
                   let cardStyle =
-                    'bg-white/85 border-white hover:border-[#7e4cf6]/70 hover:bg-white';
+                    'bg-white/80 border-white hover:border-[#7e4cf6]/75 hover:bg-white/95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.95)]';
                   if (showResult && isPicked) {
                     cardStyle = choice.isOptimal
-                      ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
-                      : 'bg-rose-50 border-rose-400 ring-2 ring-rose-400/20';
+                      ? 'bg-emerald-50/95 border-emerald-500 ring-2 ring-emerald-500/20'
+                      : 'bg-rose-50/95 border-rose-400 ring-2 ring-rose-400/20';
                   } else if (showResult && choice.isOptimal) {
-                    cardStyle = 'bg-emerald-50/70 border-emerald-400/70';
+                    cardStyle = 'bg-emerald-50/75 border-emerald-400/75';
                   }
 
                   return (
@@ -642,13 +645,13 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
                       type="button"
                       disabled={Boolean(selectedChoiceId)}
                       onClick={() => handleSelectChoice(choice)}
-                      className={`w-full text-left rounded-2xl border p-3.5 transition-all cursor-pointer disabled:cursor-default ${cardStyle}`}
+                      className={`sroci-alive-btn w-full text-left rounded-2xl border p-3.5 cursor-pointer disabled:cursor-default ${cardStyle}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-xs md:text-sm font-semibold text-slate-900">
                           {choice.label}
                         </span>
-                        <span className="shrink-0 rounded-full bg-slate-900/5 px-2 py-0.5 text-[11px] font-bold text-[#6b3be0]">
+                        <span className="shrink-0 rounded-full bg-slate-900/5 border border-white/80 px-2 py-0.5 text-[11px] font-bold text-[#6b3be0]">
                           +{choice.xpDelta} XP
                         </span>
                       </div>
@@ -664,7 +667,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
             </div>
 
             {activeChoice && (
-              <div className="rounded-2xl bg-white/90 border border-white p-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div className="sroci-fade-panel rounded-2xl bg-white/88 border border-white p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.98),0_10px_24px_rgba(15,23,42,0.08)]">
                 <div className="text-xs text-slate-800 max-w-xl">
                   <span
                     className={`font-bold mr-1.5 ${
@@ -679,7 +682,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
                 <button
                   type="button"
                   onClick={handleNextStage}
-                  className="rounded-xl bg-[#7e4cf6] px-4 py-2 text-xs font-semibold text-white hover:bg-[#6b3be0] transition-all cursor-pointer"
+                  className="sroci-alive-btn rounded-xl bg-[#7e4cf6] px-4 py-2 text-xs font-semibold text-white border border-white/45 hover:bg-[#6b3be0] cursor-pointer"
                 >
                   {turnIndex + 1 < SCENARIO_BANK.length
                     ? 'Next Pipeline Stage →'
@@ -691,8 +694,8 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
         </div>
       ) : (
         /* Completion Summary Card */
-        <div className="rounded-2xl bg-white/75 border border-white p-6 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#7e4cf6]/15 px-3.5 py-1 text-xs font-bold text-[#6b3be0]">
+        <div className="sroci-fade-panel sroci-light-edge rounded-2xl bg-white/75 p-6 text-center space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#7e4cf6]/15 border border-white/80 px-3.5 py-1 text-xs font-bold text-[#6b3be0]">
             Quest Complete • {rankTitle}
           </div>
           <h3 className="text-2xl font-bold text-slate-900">
@@ -704,17 +707,17 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
           </p>
 
           <div className="grid grid-cols-3 gap-3 max-w-md mx-auto pt-1">
-            <div className="rounded-2xl bg-white p-3 border border-slate-200/70">
+            <div className="sroci-light-edge rounded-2xl bg-white/85 p-3">
               <div className="text-[11px] text-slate-500">Total XP</div>
               <div className="text-lg font-bold text-[#7e4cf6]">{xp}</div>
             </div>
-            <div className="rounded-2xl bg-white p-3 border border-slate-200/70">
+            <div className="sroci-light-edge rounded-2xl bg-white/85 p-3">
               <div className="text-[11px] text-slate-500">Optimal Moves</div>
               <div className="text-lg font-bold text-emerald-700">
                 {correctCount}/{SCENARIO_BANK.length}
               </div>
             </div>
-            <div className="rounded-2xl bg-white p-3 border border-slate-200/70">
+            <div className="sroci-light-edge rounded-2xl bg-white/85 p-3">
               <div className="text-[11px] text-slate-500">Best Streak</div>
               <div className="text-lg font-bold text-amber-700">{bestStreak}x</div>
             </div>
@@ -723,7 +726,7 @@ export const SrociRecruitmentSimBox: React.FC<SrociRecruitmentSimBoxProps> = ({
           <button
             type="button"
             onClick={handleRestart}
-            className="rounded-xl bg-[#7e4cf6] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#6b3be0] transition-all cursor-pointer"
+            className="sroci-alive-btn rounded-xl bg-[#7e4cf6] px-5 py-2.5 text-xs font-semibold text-white border border-white/45 hover:bg-[#6b3be0] cursor-pointer"
           >
             Play Again
           </button>
