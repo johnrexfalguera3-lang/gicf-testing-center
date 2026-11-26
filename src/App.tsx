@@ -99,6 +99,38 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const accountKey = (profile?.assigned_account || 'SPAVI')
+    .trim()
+    .toUpperCase();
+  const telemetryStorageKey = profile
+    ? `sroci_sim_telemetry_${profile.id}_${accountKey}`
+    : null;
+
+  useEffect(() => {
+    if (!telemetryStorageKey) {
+      setSrociSimTelemetry(null);
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(telemetryStorageKey);
+      setSrociSimTelemetry(
+        raw ? (JSON.parse(raw) as SimulationLiveTelemetry) : null
+      );
+    } catch {
+      setSrociSimTelemetry(null);
+    }
+  }, [telemetryStorageKey]);
+
+  const handleSrociTelemetryChange = (next: SimulationLiveTelemetry) => {
+    setSrociSimTelemetry(next);
+    if (!telemetryStorageKey) return;
+    try {
+      window.localStorage.setItem(telemetryStorageKey, JSON.stringify(next));
+    } catch {
+      // Ignore storage quota or private-mode errors
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -141,7 +173,6 @@ export default function App() {
       ? 'Email'
       : 'Voice';
 
-  const accountKey = (profile.assigned_account || 'SPAVI').toUpperCase();
   const isSroci = accountKey === 'SROCI' && !isAdmin;
   const canAccessSrociAcademy = isSroci;
   const basePreset = getAccountDashboardPreset(accountKey);
@@ -162,7 +193,8 @@ export default function App() {
     isSroci &&
     srociSimTelemetry !== null &&
     (srociSimTelemetry.completedStagesCount > 0 ||
-      srociSimTelemetry.stageAttemptsCount > 0);
+      srociSimTelemetry.stageAttemptsCount > 0 ||
+      srociSimTelemetry.dynamicXp > 0);
 
   const liveCompleted = hasLiveSrociTelemetry
     ? basePreset.kpis.completedSimulations +
@@ -411,7 +443,7 @@ export default function App() {
                 <SimulationsView
                   accountName={dashboardData.accountName}
                   lob={formattedLob}
-                  onTelemetryChange={setSrociSimTelemetry}
+                  onTelemetryChange={handleSrociTelemetryChange}
                 />
               </div>
             )}
