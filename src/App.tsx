@@ -179,14 +179,20 @@ export default function App() {
       } min-h-screen text-slate-800 p-3 md:p-6`}
     >
       <div
-        className={`mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row overflow-hidden ${
+        className={`mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row ${
           isSroci
-            ? 'shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]'
-            : 'shadow-[0_24px_60px_rgba(15,23,42,0.14)]'
+            ? 'overflow-visible shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]'
+            : 'overflow-hidden shadow-[0_24px_60px_rgba(15,23,42,0.14)]'
         }`}
       >
         {/* Glass Left Sidebar */}
-        <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0">
+        <aside
+          className={`w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0 ${
+            isSroci
+              ? 'md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:rounded-l-3xl z-20'
+              : ''
+          }`}
+        >
           <div>
             <div className="glass-card flex items-center gap-3 px-3.5 py-2.5 mb-5">
               <img
