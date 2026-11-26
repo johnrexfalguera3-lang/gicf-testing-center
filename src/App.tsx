@@ -6,7 +6,11 @@ import { AgentDashboardView } from './components/AgentDashboardView';
 import { SimulationsView } from './components/SimulationsView';
 import { AdminUsersView } from './components/AdminUsersView';
 import { SplashAuthGate } from './components/SplashAuthGate';
-import { AgentDashboardData, TabId } from './types/dashboard';
+import {
+  AgentDashboardData,
+  SimulationLiveTelemetry,
+  TabId,
+} from './types/dashboard';
 
 interface UserProfile {
   id: string;
@@ -27,6 +31,8 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [srociSimTelemetry, setSrociSimTelemetry] =
+    useState<SimulationLiveTelemetry | null>(null);
 
   const urlAccount = new URLSearchParams(window.location.search)
     .get('account')
@@ -57,7 +63,6 @@ export default function App() {
         'No profile record found for this account. Contact your trainer/admin.'
       );
       setIsAuthenticated(false);
-      setProfile(null);
       setSessionChecked(true);
       return;
     }
@@ -98,6 +103,7 @@ export default function App() {
     await supabase.auth.signOut();
     setProfile(null);
     setIsAuthenticated(false);
+    setSrociSimTelemetry(null);
     setActiveTab('dashboard');
   };
 
@@ -152,6 +158,93 @@ export default function App() {
     ? 'Recruitment'
     : `${formattedLob} Mode`;
 
+  const hasLiveSrociTelemetry =
+    isSroci &&
+    srociSimTelemetry !== null &&
+    (srociSimTelemetry.completedStagesCount > 0 ||
+      srociSimTelemetry.stageAttemptsCount > 0);
+
+  const liveCompleted = hasLiveSrociTelemetry
+    ? basePreset.kpis.completedSimulations +
+      srociSimTelemetry!.completedStagesCount
+    : basePreset.kpis.completedSimulations;
+
+  const liveAttempts = hasLiveSrociTelemetry
+    ? basePreset.kpis.totalAttempts + srociSimTelemetry!.stageAttemptsCount
+    : basePreset.kpis.totalAttempts;
+
+  const liveAssigned = hasLiveSrociTelemetry
+    ? Math.max(
+        basePreset.kpis.assignedDrills,
+        srociSimTelemetry!.totalStagesCount
+      )
+    : basePreset.kpis.assignedDrills;
+
+  const livePassed = hasLiveSrociTelemetry
+    ? Math.min(
+        liveAssigned,
+        basePreset.kpis.passedScenarios +
+          srociSimTelemetry!.completedStagesCount
+      )
+    : basePreset.kpis.passedScenarios;
+
+  const liveAvgScore =
+    hasLiveSrociTelemetry && srociSimTelemetry!.completedStagesCount > 0
+      ? Math.min(
+          99,
+          Math.max(
+            basePreset.kpis.avgScorePercent,
+            Math.round(
+              84 +
+                (srociSimTelemetry!.completedStagesCount /
+                  Math.max(srociSimTelemetry!.totalStagesCount, 1)) *
+                  12
+            )
+          )
+        )
+      : basePreset.kpis.avgScorePercent;
+
+  const livePassRate =
+    hasLiveSrociTelemetry && liveAttempts > 0
+      ? Math.min(
+          100,
+          Math.max(
+            basePreset.kpis.passRatePercent,
+            Math.round((liveCompleted / liveAttempts) * 100)
+          )
+        )
+      : basePreset.kpis.passRatePercent;
+
+  const liveTrend =
+    hasLiveSrociTelemetry && srociSimTelemetry!.completedStagesCount > 0
+      ? basePreset.proficiencyTrend.map((point, idx, arr) =>
+          idx === arr.length - 1 ? { ...point, score: liveAvgScore } : point
+        )
+      : basePreset.proficiencyTrend;
+
+  const liveBreakdown = hasLiveSrociTelemetry
+    ? [
+        {
+          scenario: 'Ramp & Sourcing',
+          completed:
+            (basePreset.scenarioBreakdown[0]?.completed ?? 0) +
+            srociSimTelemetry!.topicCounts['Ramp & Sourcing'],
+        },
+        {
+          scenario: 'Screening & Validation',
+          completed:
+            (basePreset.scenarioBreakdown[1]?.completed ?? 0) +
+            srociSimTelemetry!.topicCounts['Screening & Validation'],
+        },
+        {
+          scenario: 'Walk-In & Tracker',
+          completed:
+            (basePreset.scenarioBreakdown[2]?.completed ?? 0) +
+            srociSimTelemetry!.topicCounts['Walk-In & Tracker'],
+        },
+      ]
+    : basePreset.scenarioBreakdown;
+
   const dashboardData: AgentDashboardData = {
     ...basePreset,
     accountName: accountKey,
@@ -161,6 +254,17 @@ export default function App() {
       profile.cohort_stage === 'deployed_prod'
         ? 'Deployed to Production'
         : 'New Hire',
+    kpis: {
+      ...basePreset.kpis,
+      assignedDrills: liveAssigned,
+      completedSimulations: liveCompleted,
+      totalAttempts: liveAttempts,
+      passedScenarios: livePassed,
+      avgScorePercent: liveAvgScore,
+      passRatePercent: livePassRate,
+    },
+    proficiencyTrend: liveTrend,
+    scenarioBreakdown: liveBreakdown,
   };
 
   const visibleTabs = SIDEBAR_TABS.filter((tab) => {
@@ -307,6 +411,7 @@ export default function App() {
                 <SimulationsView
                   accountName={dashboardData.accountName}
                   lob={formattedLob}
+                  onTelemetryChange={setSrociSimTelemetry}
                 />
               </div>
             )}

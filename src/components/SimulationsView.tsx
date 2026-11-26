@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChatPracticeBox } from './ChatPracticeBox';
 import { SrociRecruitmentSimBox } from './SrociRecruitmentSimBox';
 import { CHAT_SIMULATION_PROMPTS } from '../data/chatSimulationPrompts';
+import { SimulationLiveTelemetry } from '../types/dashboard';
 
 type ChannelMode = 'Voice' | 'Chat' | 'Email';
 type TopicFilter =
@@ -72,6 +73,7 @@ interface ScenarioItem {
 interface SimulationsViewProps {
   accountName: string;
   lob?: 'Voice' | 'Chat' | 'Email';
+  onTelemetryChange?: (telemetry: SimulationLiveTelemetry) => void;
 }
 
 const SROCI_PIPELINE_STAGES: SrociStageDefinition[] = [
@@ -431,7 +433,7 @@ const SCENARIOS: ScenarioItem[] = [
     ],
   },
 
-  // SROCI Recruitment Scenarios (Ramp -> Job Post -> Prescreen -> Validate -> Walk-In -> Tracker -> Follow-Up)
+  // SROCI Recruitment Scenarios
   {
     id: 'sroci-voice-prescreen-walkin',
     accountScope: 'SROCI',
@@ -549,7 +551,11 @@ function createInitialStageProgress(): Record<SrociStageId, StageProgressState> 
   }, {} as Record<SrociStageId, StageProgressState>);
 }
 
-export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
+export function SimulationsView({
+  accountName,
+  lob,
+  onTelemetryChange,
+}: SimulationsViewProps) {
   const normalizedAccount = (accountName || 'SPAVI').trim().toUpperCase();
   const isSroci = normalizedAccount === 'SROCI';
 
@@ -595,7 +601,12 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
     isOptimal: boolean;
   } | null>(null);
   const [trackerLog, setTrackerLog] = useState<
-    { candidate: string; stage: string; status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired'; updatedBy: string }[]
+    {
+      candidate: string;
+      stage: string;
+      status: 'Endorsed' | 'Walk-In Scheduled' | 'Passed' | 'Failed' | 'Hired';
+      updatedBy: string;
+    }[]
   >([
     { candidate: 'M. Reyes', stage: 'Prescreening', status: 'Walk-In Scheduled', updatedBy: 'SROCI' },
     { candidate: 'A. Mendoza', stage: 'Profile Validation', status: 'Endorsed', updatedBy: 'SROCI' },
@@ -614,6 +625,45 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
       setSelectedId(firstForAccount.id);
     }
   }, [isSroci, initialMode]);
+
+  // Sync live SROCI simulations telemetry to parent App -> AgentDashboardView
+  useEffect(() => {
+    if (!isSroci || !onTelemetryChange) return;
+
+    const topicCounts = {
+      'Ramp & Sourcing': 0,
+      'Screening & Validation': 0,
+      'Walk-In & Tracker': 0,
+    };
+
+    let completedStagesCount = 0;
+    let stageAttemptsCount = 0;
+
+    for (const stage of SROCI_PIPELINE_STAGES) {
+      const state = stageProgress[stage.id];
+      if (!state) continue;
+      stageAttemptsCount += state.attempts;
+      if (state.completed) {
+        completedStagesCount += 1;
+        if (stage.subView === 'ramp_post') {
+          topicCounts['Ramp & Sourcing'] += 1;
+        } else if (stage.subView === 'prescreen_validate') {
+          topicCounts['Screening & Validation'] += 1;
+        } else if (stage.subView === 'walkin_tracker') {
+          topicCounts['Walk-In & Tracker'] += 1;
+        }
+      }
+    }
+
+    onTelemetryChange({
+      completedStagesCount,
+      totalStagesCount: SROCI_PIPELINE_STAGES.length,
+      stageAttemptsCount,
+      dynamicXp,
+      xpStreak,
+      topicCounts,
+    });
+  }, [isSroci, stageProgress, dynamicXp, xpStreak, onTelemetryChange]);
 
   const filteredScenarios = accountScenarios.filter((item) => {
     const matchesChannel = item.channel === mode;
@@ -754,7 +804,10 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
     setTrackerLog((prev) => [
       {
         candidate,
-        stage: status === 'Hired' || status === 'Passed' || status === 'Failed' ? 'Status Follow-Up' : 'Client Tracker',
+        stage:
+          status === 'Hired' || status === 'Passed' || status === 'Failed'
+            ? 'Status Follow-Up'
+            : 'Client Tracker',
         status,
         updatedBy: 'You (Live)',
       },
@@ -867,7 +920,7 @@ export function SimulationsView({ accountName, lob }: SimulationsViewProps) {
             </div>
           </div>
 
-          {/* Activity Sub-View Switcher (Opens Focused Mini-Activities or All Cards) */}
+          {/* Activity Sub-View Switcher */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
               {(

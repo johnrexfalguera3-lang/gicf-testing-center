@@ -10,6 +10,19 @@ export interface SidebarTab {
   badge?: string;
 }
 
+export interface SimulationLiveTelemetry {
+  completedStagesCount: number;
+  totalStagesCount: number;
+  stageAttemptsCount: number;
+  dynamicXp: number;
+  xpStreak: number;
+  topicCounts: {
+    'Ramp & Sourcing': number;
+    'Screening & Validation': number;
+    'Walk-In & Tracker': number;
+  };
+}
+
 export interface AgentDashboardData {
   accountName: string;
   lob: 'Voice' | 'Chat' | 'Email';
