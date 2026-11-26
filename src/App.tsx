@@ -32,6 +32,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [sessionChecked, setSessionChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [srociSimTelemetry, setSrociSimTelemetry] =
@@ -136,11 +137,17 @@ export default function App() {
   };
 
   const handleSignOut = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+
+    await new Promise((resolve) => window.setTimeout(resolve, 650));
     await supabase.auth.signOut();
+
     setProfile(null);
     setIsAuthenticated(false);
     setSrociSimTelemetry(null);
     setActiveTab('dashboard');
+    setIsSigningOut(false);
   };
 
   if (!sessionChecked) {
@@ -159,10 +166,12 @@ export default function App() {
             {authError}
           </div>
         )}
-        <SplashAuthGate
-          accountHint={urlAccount}
-          onAuthenticated={loadSessionAndProfile}
-        />
+        <div className="sroci-fade-panel">
+          <SplashAuthGate
+            accountHint={urlAccount}
+            onAuthenticated={loadSessionAndProfile}
+          />
+        </div>
       </div>
     );
   }
@@ -315,7 +324,11 @@ export default function App() {
   const navMotionClass = 'sroci-alive-btn';
 
   return (
-    <div className="glass-canvas sroci-liquid-shell sroci-liquid-theme min-h-screen text-slate-800 p-3 md:p-6">
+    <div
+      className={`glass-canvas sroci-liquid-shell sroci-liquid-theme min-h-screen text-slate-800 p-3 md:p-6 ${
+        isSigningOut ? 'sroci-signing-out' : 'sroci-fade-panel'
+      }`}
+    >
       <div className="mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)] md:overflow-hidden rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]">
         {/* Glass Left Sidebar */}
         <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0 md:h-full md:min-h-0 z-20">
@@ -389,10 +402,11 @@ export default function App() {
             </div>
             <button
               type="button"
+              disabled={isSigningOut}
               onClick={handleSignOut}
               className={`glass-btn w-full rounded-lg py-1.5 text-center text-xs font-semibold text-[#6b3be0] cursor-pointer ${navMotionClass}`}
             >
-              Sign Out
+              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
             </button>
           </div>
         </aside>
@@ -515,4 +529,55 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export type TabId =
+  | 'dashboard'
+  | 'simulations'
+  | 'sroci_academy'
+  | 'admin_users';
+
+export interface SidebarTab {
+  id: TabId;
+  label: string;
+  badge?: string;
+}
+
+export interface SimulationLiveTelemetry {
+  completedStagesCount: number;
+  totalStagesCount: number;
+  stageAttemptsCount: number;
+  dynamicXp: number;
+  xpStreak: number;
+  topicCounts: {
+    'Ramp & Sourcing': number;
+    'Screening & Validation': number;
+    'Walk-In & Tracker': number;
+  };
+}
+
+export interface AgentDashboardData {
+  accountName: string;
+  lob: 'Voice' | 'Chat' | 'Email';
+  agentName: string;
+  cohortStage: 'New Hire' | 'Deployed to Production';
+  kpis: {
+    assignedDrills: number;
+    completedSimulations: number;
+    totalAttempts: number;
+    activeModules: number;
+    passedScenarios: number;
+    needsRetake: number;
+    avgScorePercent: number;
+    passRatePercent: number;
+  };
+  proficiencyTrend: {
+    label: string;
+    score: number;
+    target: number;
+  }[];
+  scenarioBreakdown: {
+    scenario: string;
+    completed: number;
+  }[];
 }

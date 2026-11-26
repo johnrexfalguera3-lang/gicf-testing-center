@@ -46,6 +46,19 @@
   }
 }
 
+@keyframes srociSignOutFade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.986);
+    filter: blur(5px);
+  }
+}
+
 @layer components {
   .glass-btn {
     background: rgba(255, 255, 255, 0.45);
@@ -99,7 +112,12 @@
   }
 
   .sroci-fade-panel {
-    animation: srociPanelFade 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: srociPanelFade 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sroci-signing-out {
+    animation: srociSignOutFade 650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    pointer-events: none;
   }
 
   /* Frosted Liquid Glass Dropdowns & Inputs */
