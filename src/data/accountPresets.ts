@@ -110,13 +110,13 @@ export const ACCOUNT_DIRECTORY: Record<string, AccountDirectoryEntry> = {
 
 function normalizeAccountCode(account: string): string {
   const cleaned = (account || 'SPAVI').trim().toUpperCase();
-  if (cleaned === 'LAZADA PSC' || cleaned === 'LAZADA-PSC') {
+  if (cleaned === 'LAZADA PSC' || cleaned === 'LAZADA-PSC' || cleaned === 'LAZ-PSC') {
     return 'LAZADA_PSC';
   }
   return cleaned;
 }
 
-function buildNeutralPreset(accountCode: string, displayName: string): AgentDashboardData {
+function buildStarterPreset(accountCode: string, displayName: string): AgentDashboardData {
   return {
     accountName: displayName,
     lob: 'Voice',
@@ -147,13 +147,13 @@ function buildNeutralPreset(accountCode: string, displayName: string): AgentDash
 }
 
 export const ACCOUNT_DASHBOARD_PRESETS: Record<string, AgentDashboardData> = {
-  AMC: buildNeutralPreset('AMC', 'AMC'),
-  AMBER: buildNeutralPreset('AMBER', 'Amber'),
-  COLLECTIONS: buildNeutralPreset('COLLECTIONS', 'Collections'),
-  HEALTHWAY: buildNeutralPreset('HEALTHWAY', 'Healthway'),
-  LAZADA_PSC: buildNeutralPreset('LAZADA_PSC', 'Lazada PSC'),
-  MIRAVIA: buildNeutralPreset('MIRAVIA', 'Miravia'),
-  PHILCARE: buildNeutralPreset('PHILCARE', 'PhilCare'),
+  AMC: buildStarterPreset('AMC', 'AMC'),
+  AMBER: buildStarterPreset('AMBER', 'Amber'),
+  COLLECTIONS: buildStarterPreset('COLLECTIONS', 'Collections'),
+  HEALTHWAY: buildStarterPreset('HEALTHWAY', 'Healthway'),
+  LAZADA_PSC: buildStarterPreset('LAZADA_PSC', 'Lazada PSC'),
+  MIRAVIA: buildStarterPreset('MIRAVIA', 'Miravia'),
+  PHILCARE: buildStarterPreset('PHILCARE', 'PhilCare'),
   SPAVI: {
     accountName: 'SPAVI',
     lob: 'Voice',
@@ -208,9 +208,9 @@ export const ACCOUNT_DASHBOARD_PRESETS: Record<string, AgentDashboardData> = {
       { scenario: 'Offer & Onboarding', completed: 1 },
     ],
   },
-  TMC: buildNeutralPreset('TMC', 'TMC'),
-  WATSONS: buildNeutralPreset('WATSONS', 'Watsons'),
-  YAKAP: buildNeutralPreset('YAKAP', 'Yakap'),
+  TMC: buildStarterPreset('TMC', 'TMC'),
+  WATSONS: buildStarterPreset('WATSONS', 'Watsons'),
+  YAKAP: buildStarterPreset('YAKAP', 'Yakap'),
 };
 
 export function getAccountDirectoryEntry(account: string): AccountDirectoryEntry {
@@ -232,5 +232,5 @@ export function getAccountDashboardPreset(account: string): AgentDashboardData {
   if (ACCOUNT_DASHBOARD_PRESETS[key]) {
     return ACCOUNT_DASHBOARD_PRESETS[key];
   }
-  return buildNeutralPreset(key, account.trim() || 'SPAVI');
+  return buildStarterPreset(key, account.trim() || 'SPAVI');
 }
