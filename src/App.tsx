@@ -322,10 +322,9 @@ export default function App() {
       : 'dashboard';
 
   const navMotionClass = 'sroci-alive-btn';
-  const outerShellClass = isAdmin ? 'p-2 md:p-4' : 'p-3 md:p-6';
-  const frameWidthClass = isAdmin
-    ? 'max-w-[1720px] min-h-[calc(100vh-2rem)] md:h-[calc(100vh-2rem)]'
-    : 'max-w-[1400px] min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)]';
+  const outerShellClass = 'p-2 md:p-4';
+  const frameWidthClass =
+    'max-w-[1720px] min-h-[calc(100vh-2rem)] md:h-[calc(100vh-2rem)]';
 
   return (
     <div
