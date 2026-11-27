@@ -322,14 +322,20 @@ export default function App() {
       : 'dashboard';
 
   const navMotionClass = 'sroci-alive-btn';
+  const outerShellClass = isAdmin ? 'p-2 md:p-4' : 'p-3 md:p-6';
+  const frameWidthClass = isAdmin
+    ? 'max-w-[1720px] min-h-[calc(100vh-2rem)] md:h-[calc(100vh-2rem)]'
+    : 'max-w-[1400px] min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)]';
 
   return (
     <div
-      className={`glass-canvas sroci-liquid-shell sroci-liquid-theme min-h-screen text-slate-800 p-3 md:p-6 ${
+      className={`glass-canvas sroci-liquid-shell sroci-liquid-theme min-h-screen text-slate-800 ${outerShellClass} ${
         isSigningOut ? 'sroci-signing-out' : 'sroci-fade-panel'
       }`}
     >
-      <div className="mx-auto max-w-[1400px] min-h-[calc(100vh-3rem)] md:h-[calc(100vh-3rem)] md:overflow-hidden rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]">
+      <div
+        className={`mx-auto w-full ${frameWidthClass} md:overflow-hidden rounded-3xl border border-white/85 bg-white/30 backdrop-blur-2xl flex flex-col md:flex-row shadow-[inset_0_1.5px_1.5px_rgba(255,255,255,0.95),0_28px_70px_rgba(15,23,42,0.18)]`}
+      >
         {/* Glass Left Sidebar */}
         <aside className="w-full md:w-60 bg-white/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/80 flex flex-col justify-between p-4 shrink-0 md:h-full md:min-h-0 z-20">
           <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
